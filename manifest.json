@@ -1,25 +1,24 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "name": "일본어 단어 공부",
+  "short_name": "일본어공부",
+  "description": "일본어 단어와 히라가나를 쉽게 공부할 수 있는 앱",
+  "start_url": "./japanese_electron_app.html",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#667eea",
+  "orientation": "portrait",
+  "categories": ["education", "productivity"],
+  "lang": "ko-KR",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiBmaWxsPSIjNjY3ZWVhIiByeD0iMjQiLz4KPHN2ZyB4PSI0OCIgeT0iNDgiIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KPHA+DQo8cGF0aCBkPSJtMyAxM2MwIDEuMDguNDIgMi4xIDEuMTcgMi44Ny45Mi45MiAyLjUgMi40IDQgMy4yM0w3IDIyVjlsLS4yMyAwVjlsLS45MS45MUEzIDMgMCAwIDAgMyAxM1oiLz4NCjxwYXRoIGQ9Im01IDNoNC0xIDJMMTMgM0gxN2MtLjYwLS42LTEuNS0xLTIuNS0xcy0xLjkuNC0yLjUgMUg5VjJhMSAxIDAgMCAwLTEgMWwtMSAxeiIvPg0KPHA+DQo8L3N2Zz4NCjwvc3ZnPg==",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
     },
     {
-      "src": "logo192.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "logo512.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiBmaWxsPSIjNjY3ZWVhIiByeD0iNjQiLz4KPHN2ZyB4PSIxMjgiIHk9IjEyOCIgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+DQo8cGF0aCBkPSJtMyAxM2MwIDEuMDguNDIgMi4xIDEuMTcgMi44Ny45Mi45MiAyLjUgMi40IDQgMy4yM0w3IDIyVjlsLS4yMyAwVjlsLS45MS45MUEzIDMgMCAwIDAgMyAxM1oiLz4NCjxwYXRoIGQ9Im01IDNoNC0xIDJMMTMgM0gxN2MtLjYwLS42LTEuNS0xLTIuNS0xcy0xLjkuNC0yLjUgMUg5VjJhMSAxIDAgMCAwLTEgMWwtMSAxeiIvPg0KPC9zdmc+DQo8L3N2Zz4=",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
     }
-  ],
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  ]
 }

@@ -1,1 +1,3295 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"/><link rel="icon" href="./favicon.ico"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#000000"/><meta name="description" content="Web site created using create-react-app"/><link rel="apple-touch-icon" href="./logo192.png"/><link rel="manifest" href="./manifest.json"/><title>React App</title><script defer="defer" src="./static/js/main.f031e9a6.js"></script><link href="./static/css/main.7951c113.css" rel="stylesheet"></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div></body></html>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗾 일본어 단어 공부</title>
+    
+    <!-- PWA 메타 태그들 -->
+    <meta name="description" content="일본어 단어와 히라가나를 쉽게 공부할 수 있는 앱">
+    <meta name="theme-color" content="#667eea">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="일본어공부">
+    <meta name="msapplication-TileColor" content="#667eea">
+    <link rel="manifest" href="./manifest.json">
+    
+    <!-- 아이콘들 -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiBmaWxsPSIjNjY3ZWVhIiByeD0iMjQiLz4KPHA+8J+Yr/CfmLDwn5iy8J+Ys+CfmLfwn5i78J+YvvCfmL88L3A+DQo8L3N2Zz4=">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiBmaWxsPSIjNjY3ZWVhIiByeD0iMjQiLz4KPHA+8J+Yr/CfmLDwn5iy8J+Ys+CfmLfwn5i78J+YvvCfmL88L3A+DQo8L3N2Zz4=">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.active {
+            background: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .main {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .quiz-word {
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .kanji {
+            font-size: 4rem;
+            color: #9b59b6;
+            margin-bottom: 1rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .hiragana {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin: 1.5rem 0;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .score {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #27ae60;
+            margin-bottom: 2rem;
+        }
+
+        .result {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 12px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .result.correct {
+            background: rgba(46, 204, 113, 0.1);
+            color: #27ae60;
+        }
+
+        .result.incorrect {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+
+        .result.partial {
+            background: rgba(243, 156, 18, 0.1);
+            color: #d68910;
+            border-left: 4px solid #f39c12;
+        }
+
+        .word-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e1e8ed;
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .word-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e1e8ed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .word-item:hover {
+            background: rgba(52, 152, 219, 0.05);
+        }
+
+        .word-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-indicator {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 1rem 0;
+        }
+
+        .status-success {
+            background: rgba(46, 204, 113, 0.1);
+            color: #27ae60;
+        }
+
+        .status-error {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+
+        .hangul-converter {
+            background: rgba(52, 152, 219, 0.05);
+            border: 2px dashed #3498db;
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 2rem 0;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-weight: 500;
+            font-size: 1rem;
+            min-width: 300px;
+            max-width: 400px;
+            animation: slideInFromRight 0.3s ease-out;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .notification.success {
+            background: rgba(46, 204, 113, 0.9);
+            color: white;
+            border-color: rgba(46, 204, 113, 0.3);
+        }
+
+        .notification.error {
+            background: rgba(231, 76, 60, 0.9);
+            color: white;
+            border-color: rgba(231, 76, 60, 0.3);
+        }
+
+        .notification.warning {
+            background: rgba(241, 196, 15, 0.9);
+            color: white;
+            border-color: rgba(241, 196, 15, 0.3);
+        }
+
+        .notification.info {
+            background: rgba(52, 152, 219, 0.9);
+            color: white;
+            border-color: rgba(52, 152, 219, 0.3);
+        }
+
+        @keyframes slideInFromRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.8;
+            margin-left: auto;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .header > div:nth-child(2) {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .header select {
+                min-width: 200px;
+            }
+            
+            .main {
+                padding: 1rem;
+            }
+            
+            .kanji {
+                font-size: 3rem;
+            }
+            
+            .hiragana {
+                font-size: 2rem;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+
+        /* 커스텀 팝업 모달 스타일 */
+        .custom-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .custom-popup.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .popup-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            transform: scale(0.7);
+            transition: transform 0.3s ease;
+        }
+        
+        .custom-popup.show .popup-content {
+            transform: scale(1);
+        }
+        
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f1f2f6;
+        }
+        
+        .popup-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0;
+        }
+        
+        .popup-close {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #7f8c8d;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+        
+        .popup-close:hover {
+            background-color: #f1f2f6;
+            color: #e74c3c;
+        }
+        
+        .popup-body {
+            margin-bottom: 2rem;
+        }
+        
+        .popup-message {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #34495e;
+            margin-bottom: 1.5rem;
+        }
+        
+        .popup-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        
+        .popup-btn {
+            padding: 0.8rem 1.8rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 80px;
+        }
+        
+        .popup-btn-primary {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+        }
+        
+        .popup-btn-primary:hover {
+            background: linear-gradient(45deg, #2980b9, #1abc9c);
+            transform: translateY(-2px);
+        }
+        
+        .popup-btn-secondary {
+            background: #ecf0f1;
+            color: #34495e;
+            border: 2px solid #bdc3c7;
+        }
+        
+        .popup-btn-secondary:hover {
+            background: #d5dbdb;
+            border-color: #95a5a6;
+        }
+        
+        .popup-btn-success {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+        }
+        
+        .popup-btn-success:hover {
+            background: linear-gradient(45deg, #229954, #27ae60);
+            transform: translateY(-2px);
+        }
+        
+        .popup-btn-danger {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        
+        .popup-btn-danger:hover {
+            background: linear-gradient(45deg, #c0392b, #a93226);
+            transform: translateY(-2px);
+        }
+
+        /* 히라가나 가림 효과 */
+        .hiragana-container {
+            position: relative;
+            display: inline-block;
+            margin: 2rem 0;
+        }
+
+        .hiragana-hidden {
+            filter: blur(20px);
+            color: transparent;
+            text-shadow: none;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .hiragana-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+            animation: pulse 2s infinite;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        .hiragana-toggle-btn {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: rgba(52, 152, 219, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .hiragana-toggle-btn:hover {
+            background: rgba(41, 128, 185, 0.9);
+            transform: scale(1.1);
+        }
+
+        .quiz-word {
+            position: relative;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        /* 퀴즈 화면 즐겨찾기 버튼 최적화 */
+        .quiz-favorite-btn {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 5;
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .quiz-favorite-btn:hover {
+            transform: scale(1.15) rotate(5deg);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .quiz-favorite-btn:active {
+            transform: scale(0.95);
+            transition: transform 0.1s ease;
+        }
+
+        /* 별 애니메이션 효과 */
+        @keyframes starPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .quiz-favorite-btn.favorited {
+            animation: starPulse 0.6s ease-in-out;
+        }
+        
+        /* 모바일 최적화 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.5rem;
+                margin: 0;
+            }
+            
+            .card {
+                padding: 1rem;
+                margin-bottom: 1rem;
+                border-radius: 12px;
+            }
+            
+            .quiz-word .kanji {
+                font-size: 2.5rem !important;
+            }
+            
+            .quiz-word .hiragana {
+                font-size: 1.8rem !important;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .btn {
+                width: 100%;
+                min-width: auto !important;
+                padding: 1rem;
+                font-size: 1rem;
+            }
+            
+            .input-field {
+                font-size: 1rem;
+                padding: 1rem;
+            }
+            
+            .nav-btn {
+                padding: 0.8rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            /* 2단계 퀴즈 선택 버튼들 */
+            div[style*="display: flex"][style*="gap: 1rem"] {
+                flex-direction: column !important;
+                align-items: stretch !important;
+            }
+            
+            /* 모바일에서 변환 안내 텍스트 크기 조정 */
+            div[style*="background: rgba(46, 204, 113, 0.1)"] {
+                font-size: 0.8rem !important;
+            }
+        }
+        
+        /* 아주 작은 화면 (320px 이하) */
+        @media (max-width: 320px) {
+            .card {
+                padding: 0.8rem;
+            }
+            
+            .quiz-word .kanji {
+                font-size: 2rem !important;
+            }
+            
+            .quiz-word .hiragana {
+                font-size: 1.5rem !important;
+            }
+            
+            .btn {
+                padding: 0.8rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <!-- 커스텀 팝업 모달 -->
+    <div id="customPopup" class="custom-popup">
+        <div class="popup-content">
+            <div class="popup-header">
+                <h3 id="popupTitle" class="popup-title">알림</h3>
+                <button class="popup-close" onclick="closeCustomPopup()">×</button>
+            </div>
+            <div class="popup-body">
+                <div id="popupMessage" class="popup-message"></div>
+            </div>
+            <div class="popup-buttons">
+                <button id="popupOkBtn" class="popup-btn popup-btn-primary" onclick="closeCustomPopup()">확인</button>
+                <button id="popupCancelBtn" class="popup-btn popup-btn-secondary" onclick="closeCustomPopup()" style="display: none;">취소</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback } = React;
+
+        // 커스텀 팝업 관리 함수들
+        function showCustomPopup(message, title = '알림', type = 'info', showCancel = false) {
+            const popup = document.getElementById('customPopup');
+            const titleElement = document.getElementById('popupTitle');
+            const messageElement = document.getElementById('popupMessage');
+            const okBtn = document.getElementById('popupOkBtn');
+            const cancelBtn = document.getElementById('popupCancelBtn');
+            
+            // 내용 설정
+            titleElement.textContent = title;
+            messageElement.textContent = message;
+            
+            // 버튼 스타일 설정
+            okBtn.className = 'popup-btn ';
+            switch(type) {
+                case 'success':
+                    okBtn.className += 'popup-btn-success';
+                    break;
+                case 'error':
+                case 'danger':
+                    okBtn.className += 'popup-btn-danger';
+                    break;
+                case 'warning':
+                    okBtn.className += 'popup-btn-primary';
+                    break;
+                default:
+                    okBtn.className += 'popup-btn-primary';
+            }
+            
+            // 취소 버튼 표시/숨김
+            if (showCancel) {
+                cancelBtn.style.display = 'inline-block';
+            } else {
+                cancelBtn.style.display = 'none';
+            }
+            
+            // 팝업 표시
+            popup.classList.add('show');
+            
+            return new Promise((resolve) => {
+                // 확인 버튼 클릭 시
+                okBtn.onclick = () => {
+                    closeCustomPopup();
+                    resolve(true);
+                };
+                
+                // 취소 버튼 클릭 시
+                if (showCancel) {
+                    cancelBtn.onclick = () => {
+                        closeCustomPopup();
+                        resolve(false);
+                    };
+                }
+            });
+        }
+        
+        function closeCustomPopup() {
+            const popup = document.getElementById('customPopup');
+            popup.classList.remove('show');
+        }
+        
+        // ESC 키로 팝업 닫기
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeCustomPopup();
+            }
+        });
+        
+        // 배경 클릭으로 팝업 닫기
+        document.getElementById('customPopup').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeCustomPopup();
+            }
+        });
+
+        // 확장된 한자 사전에 おと 추가
+        const kanjiDict = {
+            "がっこう": "学校", "せんせい": "先生", "がくせい": "学生",
+            "たべもの": "食べ物", "みず": "水", "じかん": "時間",
+            "ともだち": "友達", "かぞく": "家族", "しごと": "仕事",
+            "いえ": "家", "あたま": "頭", "こころ": "心",
+            "てがみ": "手紙", "でんわ": "電話", "くるま": "車",
+            "えき": "駅", "びょういん": "病院", "ぎんこう": "銀行",
+            "こうえん": "公園", "としょかん": "図書館", "かいしゃ": "会社",
+            "はなし": "話", "べんきょう": "勉強", "しゅくだい": "宿題",
+            "でんしゃ": "電車", "じてんしゃ": "自転車", "ひこうき": "飛行機",
+            
+            // 추가된 기본 한자들
+            "おと": "音", "こえ": "声", "め": "目", "て": "手", 
+            "あし": "足", "あたま": "頭", "からだ": "体", "ひと": "人",
+            "いち": "一", "に": "二", "さん": "三", "よん": "四", "ご": "五",
+            "ろく": "六", "なな": "七", "はち": "八", "きゅう": "九", "じゅう": "十",
+            "ひ": "日", "つき": "月", "か": "火", "すい": "水", "もく": "木", 
+            "きん": "金", "ど": "土", "にち": "日", "げつ": "月", "か": "火",
+            "あか": "赤", "あお": "青", "しろ": "白", "くろ": "黒", "きいろ": "黄"
+        };
+
+        // 확장된 한글-히라가나 변환 (복합음, 요음 포함)
+        const hangulToHiragana = {
+            // 기본 모음 (중요!)
+            'ㅏ': 'あ', 'ㅣ': 'い', 'ㅜ': 'う', 'ㅓ': 'え', 'ㅗ': 'お',
+            'ㅑ': 'や', 'ㅕ': 'よ', 'ㅠ': 'ゆ', 'ㅛ': 'よ', 'ㅘ': 'わ', 'ㅙ': 'わい', 'ㅚ': 'うぇ',
+            'ㅝ': 'うぉ', 'ㅞ': 'うぇ', 'ㅟ': 'うい', 'ㅢ': 'うい', 'ㅔ': 'え', 'ㅐ': 'え',
+            
+            // 기본 자음 (단독)
+            'ㄱ': 'が', 'ㄴ': 'ん', 'ㄷ': 'だ', 'ㄹ': 'ら', 'ㅁ': 'ま', 'ㅂ': 'ば', 
+            'ㅅ': 'さ', 'ㅇ': '', 'ㅈ': 'じ', 'ㅊ': 'ち', 'ㅋ': 'か', 'ㅌ': 'た', 
+            'ㅍ': 'ぱ', 'ㅎ': 'は',
+            
+            // 소쿠온(촉음) ㅅ → っ 처리
+            'ㅅㅅ': 'っ', 'っ': 'っ',
+            
+            // 와행 추가 (중요!)
+            '와': 'わ', '왜': 'わい', '외': 'うぇ', '웨': 'うぇ', '위': 'うい', '의': 'うい',
+            
+            // 기본 자음+모음
+            '가': 'が', '갸': 'ぎゃ', '거': 'げ', '겨': 'ぎぇ', '고': 'ご', '교': 'ぎょ', '구': 'ぐ', '규': 'ぎゅ', '그': 'ぐ', '기': 'ぎ', '개': 'がい', '게': 'げ',
+            '나': 'な', '냐': 'にゃ', '너': 'ね', '녀': 'にぇ', '노': 'の', '뇨': 'にょ', '누': 'ぬ', '뉴': 'にゅ', '느': 'ぬ', '니': 'に', '내': 'ない', '네': 'ね',
+            '다': 'だ', '댜': 'ぢゃ', '더': 'で', '뎌': 'ぢぇ', '도': 'ど', '됴': 'ぢょ', '두': 'づ', '듀': 'ぢゅ', '드': 'づ', '디': 'ぢ', '대': 'だい', '데': 'で',
+            '라': 'ら', '랴': 'りゃ', '러': 'れ', '려': 'りぇ', '로': 'ろ', '료': 'りょ', '루': 'る', '류': 'りゅ', '르': 'る', '리': 'り', '래': 'らい', '레': 'れ',
+            '마': 'ま', '먀': 'みゃ', '머': 'め', '며': 'みぇ', '모': 'も', '묘': 'みょ', '무': 'む', '뮤': 'みゅ', '므': 'む', '미': 'み', '매': 'まい', '메': 'め',
+            '바': 'ば', '뱌': 'びゃ', '버': 'べ', '벼': 'びぇ', '보': 'ぼ', '뵤': 'びょ', '부': 'ぶ', '뷰': 'びゅ', '브': 'ぶ', '비': 'び', '배': 'ばい', '베': 'べ',
+            '사': 'さ', '샤': 'しゃ', '서': 'せ', '셔': 'しぇ', '소': 'そ', '쇼': 'しょ', '수': 'す', '슈': 'しゅ', '스': 'す', '시': 'し', '새': 'さい', '세': 'せ',
+            '아': 'あ', '야': 'や', '어': 'え', '여': 'いぇ', '오': 'お', '요': 'よ', '우': 'う', '유': 'ゆ', '으': 'う', '이': 'い', '애': 'あい', '에': 'え',
+            '자': 'ざ', '쟈': 'じゃ', '저': 'ぜ', '져': 'じぇ', '조': 'ぞ', '죠': 'じょ', '주': 'ず', '쥬': 'じゅ', '즈': 'ず', '지': 'じ', '재': 'ざい', '제': 'ぜ',
+            '차': 'ちゃ', '챠': 'ちゃ', '처': 'ちぇ', '쳐': 'ちぇ', '초': 'ちょ', '쵸': 'ちょ', '추': 'ちゅ', '츄': 'ちゅ', '츠': 'つ', '치': 'ち', '채': 'ちゃい', '체': 'ちぇ',
+            '카': 'か', '캬': 'きゃ', '커': 'け', '켜': 'きぇ', '코': 'こ', '쿄': 'きょ', '쿠': 'く', '큐': 'きゅ', '크': 'く', '키': 'き', '캐': 'かい', '케': 'け',
+            '타': 'た', '탸': 'ちゃ', '터': 'て', '텨': 'ちぇ', '토': 'と', '툐': 'ちょ', '투': 'つ', '튜': 'ちゅ', '트': 'つ', '티': 'ち', '태': 'たい', '테': 'て',
+            '파': 'ぱ', '퍄': 'ぴゃ', '퍼': 'ぺ', '펴': 'ぴぇ', '포': 'ぽ', '표': 'ぴょ', '푸': 'ぷ', '퓨': 'ぴゅ', '프': 'ぷ', '피': 'ぴ', '패': 'ぱい', '페': 'ぺ',
+            '하': 'は', '햐': 'ひゃ', '허': 'へ', '혀': 'ひぇ', '호': 'ほ', '효': 'ひょ', '후': 'ふ', '휴': 'ひゅ', '흐': 'ふ', '히': 'ひ', '해': 'はい', '헤': 'へ',
+            
+            // 받침 처리 + 소쿠온(촉음)
+            '갓': 'がっ', '낫': 'なっ', '댓': 'だっ', '랏': 'らっ', '맛': 'まっ', '밧': 'ばっ', '삿': 'さっ', '앗': 'あっ', '잣': 'ざっ', '찻': 'ちゃっ', '캣': 'かっ', '탓': 'たっ', '팟': 'ぱっ', '핫': 'はっ',
+            '갖': 'がっ', '낮': 'なっ', '닫': 'だっ', '랒': 'らっ', '맞': 'まっ', '밭': 'ばっ', '샷': 'さっ', '앚': 'あっ', '잦': 'ざっ', '쳇': 'ちゃっ', '캣': 'かっ', '탯': 'たっ', '팟': 'ぱっ', '핫': 'はっ',
+            '각': 'がく', '낙': 'なく', '단': 'だん', '란': 'らん', '만': 'まん', '반': 'ばん', '산': 'さん', '안': 'あん', '잔': 'ざん', '찬': 'ちゃん', '칸': 'かん', '탄': 'たん', '판': 'ぱん', '한': 'はん',
+            '강': 'がん', '낭': 'なん', '당': 'だん', '랑': 'らん', '망': 'まん', '방': 'ばん', '상': 'さん', '앙': 'あん', '장': 'ざん', '창': 'ちゃん', '캉': 'かん', '탕': 'たん', '팡': 'ぱん', '항': 'はん',
+            
+            // 소쿠온 조합들 (중요!)
+            '킷': 'きっ', '깃': 'ぎっ', '닛': 'にっ', '딧': 'ぢっ', '릿': 'りっ', '밑': 'みっ', '빗': 'びっ', '싯': 'しっ', '잇': 'いっ', '짓': 'じっ', 
+            '칫': 'ちっ', '킷': 'きっ', '틱': 'ちっ', '핏': 'ぴっ', '힛': 'ひっ',
+            '켓': 'けっ', '겟': 'げっ', '넷': 'ねっ', '뎃': 'でっ', '렛': 'れっ', '멧': 'めっ', '벳': 'べっ', '셋': 'せっ', '엣': 'えっ', '젯': 'ぜっ',
+            '쳇': 'ちぇっ', '켓': 'けっ', '텟': 'てっ', '펫': 'ぺっ', '헷': 'へっ',
+            '콧': 'こっ', '곳': 'ごっ', '놋': 'のっ', '돗': 'どっ', '롯': 'ろっ', '못': 'もっ', '봇': 'ぼっ', '솟': 'そっ', '옷': 'おっ', '좃': 'ぞっ',
+            '촛': 'ちょっ', '콧': 'こっ', '톳': 'とっ', '폿': 'ぽっ', '홋': 'ほっ',
+            '쿳': 'くっ', '굿': 'ぐっ', '눗': 'ぬっ', '둣': 'づっ', '룻': 'るっ', '뭇': 'むっ', '붓': 'ぶっ', '숯': 'すっ', '웃': 'うっ', '줏': 'ずっ',
+            '춧': 'ちゅっ', '쿳': 'くっ', '뜯': 'つっ', '풋': 'ぷっ', '훗': 'ふっ',
+            
+            // 요음 (ょ) 처리
+            '갸': 'ぎゃ', '냐': 'にゃ', '댜': 'ぢゃ', '랴': 'りゃ', '먀': 'みゃ', '뱌': 'びゃ', '샤': 'しゃ', '야': 'や', '쟈': 'じゃ', '챠': 'ちゃ', '캬': 'きゃ', '탸': 'ちゃ', '퍄': 'ぴゃ', '햐': 'ひゃ',
+            '겨': 'ぎぇ', '녀': 'にぇ', '뎌': 'ぢぇ', '려': 'りぇ', '며': 'みぇ', '벼': 'びぇ', '셔': 'しぇ', '여': 'いぇ', '져': 'じぇ', '쳐': 'ちぇ', '켜': 'きぇ', '텨': 'ちぇ', '펴': 'ぴぇ', '혀': 'ひぇ',
+            '교': 'ぎょ', '뇨': 'にょ', '됴': 'ぢょ', '료': 'りょ', '묘': 'みょ', '뵤': 'びょ', '쇼': 'しょ', '요': 'よ', '죠': 'じょ', '쵸': 'ちょ', '쿄': 'きょ', '툐': 'ちょ', '표': 'ぴょ', '효': 'ひょ',
+            '규': 'ぎゅ', '뉴': 'にゅ', '듀': 'ぢゅ', '류': 'りゅ', '뮤': 'みゅ', '뷰': 'びゅ', '슈': 'しゅ', '유': 'ゆ', '쥬': 'じゅ', '츄': 'ちゅ', '큐': 'きゅ', '튜': 'ちゅ', '퓨': 'ぴゅ', '휴': 'ひゅ',
+            
+            // 장음 처리
+            '가아': 'があ', '나아': 'なあ', '다아': 'だあ', '라아': 'らあ', '마아': 'まあ', '바아': 'ばあ', '사아': 'さあ', '아아': 'ああ', '자아': 'ざあ', '차아': 'ちゃあ', '카아': 'かあ', '타아': 'たあ', '파아': 'ぱあ', '하아': 'はあ',
+            '기이': 'ぎい', '니이': 'にい', '디이': 'ぢい', '리이': 'りい', '미이': 'みい', '비이': 'びい', '시이': 'しい', '이이': 'いい', '지이': 'じい', '치이': 'ちii', '키이': 'きい', '티이': 'ちい', '피이': 'ぴい', '히이': 'ひい',
+            '구우': 'ぐう', '누우': 'ぬう', '두우': 'づう', '루우': 'るう', '무우': 'むう', '부우': 'ぶう', '수우': 'すう', '우우': 'うう', '주우': 'ずう', '추우': 'ちゅう', '쿠우': 'くう', '투우': 'つう', '푸우': 'ぷう', '후우': 'ふう',
+            '게에': 'げえ', '네에': 'ねえ', '데에': 'でえ', '레에': 'れえ', '메에': 'めえ', '베에': 'べえ', '세에': 'せえ', '에에': 'ええ', '제에': 'ぜえ', '체에': 'ちぇえ', '케에': 'けえ', '테에': 'てえ', '페에': 'ぺえ', '헤에': 'へえ',
+            '고오': 'ごお', '노오': 'のお', '도오': 'どお', '로오': 'ろお', '모오': 'もお', '보오': 'ぼお', '소오': 'そお', '오오': 'おお', '조오': 'ぞお', '초오': 'ちょお', '코오': 'こお', '토오': 'とお', '포오': 'ぽお', '호오': 'ほお'
+        };
+
+        function JapaneseStudyApp() {
+            const [currentTab, setCurrentTab] = useState('quiz');
+            const [words, setWords] = useState({});
+            const [currentWord, setCurrentWord] = useState(null);
+            const [userAnswer, setUserAnswer] = useState('');
+            const [score, setScore] = useState(0);
+            const [totalQuestions, setTotalQuestions] = useState(0);
+            const [result, setResult] = useState(null);
+            const [quizStarted, setQuizStarted] = useState(false);
+            const [usedWords, setUsedWords] = useState(new Set()); // 이미 출제된 문제들
+            const [quizCompleted, setQuizCompleted] = useState(false); // 퀴즈 완료 여부
+            const [hideHiragana, setHideHiragana] = useState(false); // 히라가나 가림 여부
+            
+            // 단어장 세트 관리
+            const [wordSets, setWordSets] = useState({}); // 모든 단어장 세트들
+            const [currentSetId, setCurrentSetId] = useState('default'); // 현재 선택된 세트
+            const [setNames, setSetNames] = useState({ default: '기본 단어장' }); // 세트 이름들
+            
+            // 단어 추가 폼
+            const [newKanji, setNewKanji] = useState('');
+            const [newHiragana, setNewHiragana] = useState('');
+            const [newKorean, setNewKorean] = useState('');
+            const [hangulInput, setHangulInput] = useState('');
+            const [convertedHiragana, setConvertedHiragana] = useState('');
+            const [kanjiStatus, setKanjiStatus] = useState('');
+            const [kanjiCandidates, setKanjiCandidates] = useState([]);
+            const [showNotification, setShowNotification] = useState(false);
+            const [notificationMessage, setNotificationMessage] = useState('');
+            const [notificationType, setNotificationType] = useState('success'); // success, error, warning, info
+            
+            // 수정 모드 관련 상태
+            const [isEditMode, setIsEditMode] = useState(false); // 수정 모드인지 여부
+            const [editingWordKey, setEditingWordKey] = useState(null); // 수정 중인 단어의 원래 키
+            
+            // 즐겨찾기/표시 관련 상태
+            const [favoriteWords, setFavoriteWords] = useState({}); // 세트별 즐겨찾기 단어들
+            const [showFavoritesOnly, setShowFavoritesOnly] = useState(false); // 즐겨찾기만 표시
+            const [quizMode, setQuizMode] = useState('all'); // 'all' | 'favorites'
+            const [quizType, setQuizType] = useState('korean'); // 'korean' | 'hiragana' | 'both'
+            const [convertedQuizAnswer, setConvertedQuizAnswer] = useState(''); // 히라가나 퀴즈용 변환된 답안
+            
+            // 둘 다 맞추기 퀴즈용 상태들
+            const [userKoreanAnswer, setUserKoreanAnswer] = useState(''); // 한국어 답안
+            const [userHiraganaAnswer, setUserHiraganaAnswer] = useState(''); // 히라가나 답안
+            const [convertedHiraganaAnswer, setConvertedHiraganaAnswer] = useState(''); // 변환된 히라가나
+            const [bothQuizResult, setBothQuizResult] = useState({ korean: null, hiragana: null }); // 각각의 정답 여부
+            
+            // 퀴즈 선택 UI 상태
+            const [selectedRange, setSelectedRange] = useState('all'); // 'all' | 'favorites'
+            const [selectedType, setSelectedType] = useState('korean'); // 'korean' | 'hiragana' | 'both' | 'japanese'
+            
+            // 퀴즈 진행 상태
+            const [isLoadingNextQuestion, setIsLoadingNextQuestion] = useState(false);
+
+            // 초기 데이터 로드
+            useEffect(() => {
+                loadAllWordSets();
+                loadFavoriteWords();
+            }, []);
+
+            // 현재 세트가 변경될 때 단어 업데이트
+            useEffect(() => {
+                if (wordSets[currentSetId]) {
+                    setWords(wordSets[currentSetId]);
+                }
+            }, [currentSetId, wordSets]);
+
+            // 모든 단어장 세트 로드
+            const loadAllWordSets = () => {
+                const savedSets = localStorage.getItem('japaneseWordSets');
+                const savedSetNames = localStorage.getItem('japaneseSetNames');
+                
+                if (savedSets && savedSetNames) {
+                    try {
+                        const parsedSets = JSON.parse(savedSets);
+                        const parsedNames = JSON.parse(savedSetNames);
+                        setWordSets(parsedSets);
+                        setSetNames(parsedNames);
+                        
+                        // 현재 세트 설정
+                        const savedCurrentSet = localStorage.getItem('currentWordSet') || 'default';
+                        if (parsedSets[savedCurrentSet]) {
+                            setCurrentSetId(savedCurrentSet);
+                            setWords(parsedSets[savedCurrentSet]);
+                        }
+                        console.log('저장된 단어장 세트들을 불러왔습니다:', Object.keys(parsedSets).length + '개 세트');
+                    } catch (error) {
+                        console.error('저장된 세트 로드 실패:', error);
+                        createDefaultSet();
+                    }
+                } else {
+                    createDefaultSet();
+                }
+            };
+
+            // 기본 세트 생성
+            const createDefaultSet = () => {
+                const defaultWords = {
+                    "がっこう": { kanji: "学校", hiragana: "がっこう", korean: "학교" },
+                    "せんせい": { kanji: "先生", hiragana: "せんせい", korean: "선생님" },
+                    "がくせい": { kanji: "学生", hiragana: "がくせい", korean: "학생" },
+                    "たべもの": { kanji: "食べ物", hiragana: "たべもの", korean: "음식" },
+                    "みず": { kanji: "水", hiragana: "みず", korean: "물" },
+                    "じかん": { kanji: "時間", hiragana: "じかん", korean: "시간" },
+                    "ともだち": { kanji: "友達", hiragana: "ともだち", korean: "친구" },
+                    "でんしゃ": { kanji: "電車", hiragana: "でんしゃ", korean: "전차" },
+                    "びょういん": { kanji: "病院", hiragana: "びょういん", korean: "병원" },
+                    "こうえん": { kanji: "公園", hiragana: "こうえん", korean: "공원" }
+                };
+                
+                const initialSets = { default: defaultWords };
+                const initialNames = { default: '기본 단어장' };
+                
+                setWordSets(initialSets);
+                setSetNames(initialNames);
+                setWords(defaultWords);
+                setCurrentSetId('default');
+                
+                saveAllSets(initialSets, initialNames, 'default');
+                console.log('기본 단어장이 생성되었습니다.');
+            };
+
+            // 모든 세트 데이터 저장
+            const saveAllSets = (sets, names, currentSet) => {
+                localStorage.setItem('japaneseWordSets', JSON.stringify(sets));
+                localStorage.setItem('japaneseSetNames', JSON.stringify(names));
+                localStorage.setItem('currentWordSet', currentSet);
+            };
+
+            // 즐겨찾기 데이터 로드
+            const loadFavoriteWords = () => {
+                const savedFavorites = localStorage.getItem('japaneseFavoriteWords');
+                if (savedFavorites) {
+                    try {
+                        const parsedFavorites = JSON.parse(savedFavorites);
+                        setFavoriteWords(parsedFavorites);
+                        console.log('즐겨찾기 데이터를 불러왔습니다.');
+                    } catch (error) {
+                        console.error('즐겨찾기 로드 실패:', error);
+                        setFavoriteWords({});
+                    }
+                }
+            };
+
+            // 즐겨찾기 데이터 저장
+            const saveFavoriteWords = (favorites) => {
+                localStorage.setItem('japaneseFavoriteWords', JSON.stringify(favorites));
+                console.log('즐겨찾기 데이터가 저장되었습니다.');
+            };
+
+            // 단어 즐겨찾기 토글
+            const toggleWordFavorite = (wordKey) => {
+                const currentSetFavorites = favoriteWords[currentSetId] || {};
+                const isCurrentlyFavorite = currentSetFavorites[wordKey];
+
+                const updatedFavorites = {
+                    ...favoriteWords,
+                    [currentSetId]: {
+                        ...currentSetFavorites,
+                        [wordKey]: !isCurrentlyFavorite
+                    }
+                };
+
+                // false인 항목들은 제거 (정리)
+                if (!updatedFavorites[currentSetId][wordKey]) {
+                    delete updatedFavorites[currentSetId][wordKey];
+                }
+
+                setFavoriteWords(updatedFavorites);
+                saveFavoriteWords(updatedFavorites);
+
+                const action = !isCurrentlyFavorite ? '표시' : '해제';
+                showAlert(`⭐ '${wordKey}' 단어를 ${action}했습니다.`, 'info');
+            };
+
+            // 현재 세트의 즐겨찾기 단어들 가져오기
+            const getCurrentSetFavorites = () => {
+                return favoriteWords[currentSetId] || {};
+            };
+
+            // 즐겨찾기된 단어만 필터링
+            const getFilteredWords = () => {
+                if (!showFavoritesOnly) return words;
+                
+                const currentFavorites = getCurrentSetFavorites();
+                const filteredWords = {};
+                
+                Object.keys(words).forEach(wordKey => {
+                    if (currentFavorites[wordKey]) {
+                        filteredWords[wordKey] = words[wordKey];
+                    }
+                });
+                
+                return filteredWords;
+            };
+
+            // 현재 세트의 단어가 변경될 때마다 저장
+            useEffect(() => {
+                if (Object.keys(words).length > 0 && wordSets[currentSetId]) {
+                    const updatedSets = {
+                        ...wordSets,
+                        [currentSetId]: words
+                    };
+                    setWordSets(updatedSets);
+                    saveAllSets(updatedSets, setNames, currentSetId);
+                    console.log(`'${setNames[currentSetId]}' 세트가 자동 저장되었습니다:`, Object.keys(words).length + '개 단어');
+                }
+            }, [words]);
+
+            // 히라가나 입력 시 한자 자동 검색 (API 사용)
+            useEffect(() => {
+                const searchKanji = async () => {
+                    if (newHiragana) {
+                        const foundKanji = await findKanjiForWord(newHiragana);
+                        if (foundKanji) {
+                            setNewKanji(foundKanji);
+                        }
+                    } else {
+                        setNewKanji('');
+                        setKanjiStatus('');
+                    }
+                };
+                
+                // 디바운스 처리 (500ms 후에 검색)
+                const timeoutId = setTimeout(searchKanji, 500);
+                return () => clearTimeout(timeoutId);
+            }, [newHiragana]);
+
+            // 복잡한 한글 → 히라가나 변환 (소쿠온 처리 개선)
+            const convertHangulToHiragana = useCallback((hangul) => {
+                let result = '';
+                let i = 0;
+                
+                while (i < hangul.length) {
+                    let found = false;
+                    
+                    // 4글자 조합 확인 (예: "키토")
+                    if (i + 3 < hangul.length) {
+                        const four = hangul.substr(i, 4);
+                        if (hangulToHiragana[four]) {
+                            result += hangulToHiragana[four];
+                            i += 4;
+                            found = true;
+                        }
+                    }
+                    
+                    // 3글자 조합 확인 (예: "킷토", "쵸토")
+                    if (!found && i + 2 < hangul.length) {
+                        const three = hangul.substr(i, 3);
+                        if (hangulToHiragana[three]) {
+                            result += hangulToHiragana[three];
+                            i += 3;
+                            found = true;
+                        }
+                    }
+                    
+                    // 2글자 조합 확인 (예: "킷", "요음")
+                    if (!found && i + 1 < hangul.length) {
+                        const two = hangul.substr(i, 2);
+                        if (hangulToHiragana[two]) {
+                            result += hangulToHiragana[two];
+                            i += 2;
+                            found = true;
+                        }
+                    }
+                    
+                    // 1글자 확인
+                    if (!found) {
+                        const one = hangul[i];
+                        if (hangulToHiragana[one]) {
+                            result += hangulToHiragana[one];
+                        } else {
+                            // 소쿠온 특별 처리: ㅅ가 자음 앞에 오면 っ로 변환
+                            if (one === 'ㅅ' && i + 1 < hangul.length) {
+                                const nextChar = hangul[i + 1];
+                                // 다음 글자가 자음으로 시작하는 글자면 소쿠온
+                                if (['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
+                                     'ㄲ', 'ㄸ', 'ㅃ', 'ㅆ', 'ㅉ'].includes(nextChar) ||
+                                    ['가', '나', '다', '라', '마', '바', '사', '자', '차', '카', '타', '파', '하',
+                                     '기', '니', '디', '리', '미', '비', '시', '지', '치', '키', '티', '피', '히',
+                                     '구', '누', '두', '루', '무', '부', '수', '주', '추', '쿠', '투', '푸', '후',
+                                     '게', '네', '데', '레', '메', '베', '세', '제', '체', '케', '테', '페', '헤',
+                                     '고', '노', '도', '로', '모', '보', '소', '조', '초', '코', '토', '포', '호'].some(char => nextChar.startsWith(char))) {
+                                    result += 'っ';
+                                } else {
+                                    result += one; // 변환할 수 없는 문자는 그대로
+                                }
+                            } else {
+                                result += one; // 변환할 수 없는 문자는 그대로
+                            }
+                        }
+                        i += 1;
+                    }
+                }
+                
+                return result;
+            }, []);
+
+            // 한글 입력 시 자동 변환
+            useEffect(() => {
+                if (hangulInput) {
+                    const converted = convertHangulToHiragana(hangulInput);
+                    setConvertedHiragana(converted);
+                } else {
+                    setConvertedHiragana('');
+                }
+            }, [hangulInput, convertHangulToHiragana]);
+
+            // 히라가나 퀴즈용 실시간 한글 변환
+            useEffect(() => {
+                if (quizType === 'hiragana' && userAnswer) {
+                    const converted = convertHangulToHiragana(userAnswer);
+                    setConvertedQuizAnswer(converted);
+                } else {
+                    setConvertedQuizAnswer('');
+                }
+            }, [userAnswer, quizType, convertHangulToHiragana]);
+
+            // 둘 다 맞추기 퀴즈용 히라가나 실시간 변환
+            useEffect(() => {
+                if (quizType === 'both' && userHiraganaAnswer) {
+                    const converted = convertHangulToHiragana(userHiraganaAnswer);
+                    setConvertedHiraganaAnswer(converted);
+                } else {
+                    setConvertedHiraganaAnswer('');
+                }
+            }, [userHiraganaAnswer, quizType, convertHangulToHiragana]);
+
+            // API를 통한 한자 검색 (여러 후보 반환)
+            const searchKanjiAPI = async (hiragana) => {
+                try {
+                    setKanjiStatus('🔍 한자 후보 검색 중...');
+                    setKanjiCandidates([]);
+                    
+                    // 여러 CORS 프록시 서비스를 순차적으로 시도
+                    const proxies = [
+                        'https://api.codetabs.com/v1/proxy?quest=',
+                        'https://cors-proxy.htmldriven.com/?url=',
+                        'https://cors.bridged.cc/',
+                        'https://api.allorigins.win/raw?url='
+                    ];
+                    
+                    const jishoUrl = `https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(hiragana)}`;
+                    let data = null;
+                    
+                    // 각 프록시를 순차적으로 시도
+                    for (const proxy of proxies) {
+                        try {
+                            console.log(`프록시 시도: ${proxy}`);
+                            const response = await fetch(proxy + encodeURIComponent(jishoUrl), {
+                                method: 'GET',
+                                headers: {
+                                    'Accept': 'application/json',
+                                },
+                                timeout: 10000 // 10초 타임아웃
+                            });
+                            
+                            if (response.ok) {
+                                const responseText = await response.text();
+                                // JSON인지 확인
+                                if (responseText.trim().startsWith('{')) {
+                                    data = JSON.parse(responseText);
+                                    if (data.data) {
+                                        console.log(`성공한 프록시: ${proxy}`);
+                                        break;
+                                    }
+                                }
+                            }
+                        } catch (proxyError) {
+                            console.log(`프록시 ${proxy} 실패:`, proxyError.message);
+                            continue;
+                        }
+                    }
+                    
+                    console.log('API 응답:', data); // 디버깅용
+                    
+                    if (data && data.data && data.data.length > 0) {
+                        const candidates = [];
+                        
+                        // 모든 결과에서 한자 후보들 수집
+                        for (let entry of data.data.slice(0, 8)) { // 최대 8개만
+                            if (entry.japanese && entry.japanese.length > 0) {
+                                for (let japanese of entry.japanese) {
+                                    // 한자가 있고, 히라가나와 다른 경우만
+                                    if (japanese.word && 
+                                        japanese.word !== hiragana && 
+                                        /[\u4e00-\u9faf]/.test(japanese.word) &&
+                                        !candidates.some(c => c.kanji === japanese.word)) {
+                                        
+                                        // 영어 뜻 추가
+                                        const meanings = entry.senses && entry.senses[0] && entry.senses[0].english_definitions
+                                            ? entry.senses[0].english_definitions.slice(0, 3).join(', ')
+                                            : '';
+                                        
+                                        candidates.push({
+                                            kanji: japanese.word,
+                                            reading: japanese.reading || hiragana,
+                                            meanings: meanings
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (candidates.length > 0) {
+                            setKanjiCandidates(candidates);
+                            setKanjiStatus(`✅ ${candidates.length}개의 한자 후보를 찾았습니다`);
+                            return candidates[0].kanji; // 첫 번째를 기본값으로
+                        }
+                    }
+                    
+                    // 모든 프록시가 실패한 경우 직접 API 호출 시도 (CORS 에러가 발생할 수 있지만 시도해볼 가치가 있음)
+                    console.log('모든 프록시 실패, 직접 API 호출 시도 중...');
+                    try {
+                        const directResponse = await fetch(`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(hiragana)}`, {
+                            mode: 'cors',
+                            headers: {
+                                'Accept': 'application/json',
+                            }
+                        });
+                        
+                        if (directResponse.ok) {
+                            const directData = await directResponse.json();
+                            if (directData.data && directData.data.length > 0) {
+                                const candidates = [];
+                                
+                                for (let entry of directData.data.slice(0, 8)) {
+                                    if (entry.japanese && entry.japanese.length > 0) {
+                                        for (let japanese of entry.japanese) {
+                                            if (japanese.word && 
+                                                japanese.word !== hiragana && 
+                                                /[\u4e00-\u9faf]/.test(japanese.word) &&
+                                                !candidates.some(c => c.kanji === japanese.word)) {
+                                                
+                                                const meanings = entry.senses && entry.senses[0] && entry.senses[0].english_definitions
+                                                    ? entry.senses[0].english_definitions.slice(0, 3).join(', ')
+                                                    : '';
+                                                
+                                                candidates.push({
+                                                    kanji: japanese.word,
+                                                    reading: japanese.reading || hiragana,
+                                                    meanings: meanings
+                                                });
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                if (candidates.length > 0) {
+                                    setKanjiCandidates(candidates);
+                                    setKanjiStatus(`✅ 직접 API 성공: ${candidates.length}개 한자 발견`);
+                                    return candidates[0].kanji;
+                                }
+                            }
+                        }
+                    } catch (directError) {
+                        console.error('직접 API 호출도 실패:', directError);
+                    }
+                    
+                    setKanjiStatus('❌ API에서 한자 후보를 찾을 수 없습니다');
+                    return '';
+                } catch (error) {
+                    console.error('API 검색 전체 오류:', error);
+                    setKanjiStatus('⚠️ API 연결 실패 - 내장 사전 사용');
+                    return '';
+                }
+            };
+
+            // 개선된 한자 검색 (API + 내장 사전)
+            const findKanjiForWord = async (hiragana) => {
+                // 1순위: 내장 사전에서 빠른 검색
+                if (kanjiDict[hiragana]) {
+                    setKanjiStatus(`✅ 내장 사전에서 발견: ${kanjiDict[hiragana]}`);
+                    setKanjiCandidates([{ kanji: kanjiDict[hiragana], reading: hiragana, meanings: '내장 사전' }]);
+                    return kanjiDict[hiragana];
+                }
+                
+                // 2순위: API 검색 (여러 후보 반환)
+                const apiResult = await searchKanjiAPI(hiragana);
+                if (apiResult) {
+                    // API 결과를 내장 사전에 저장해서 다음번에는 더 빨리
+                    kanjiDict[hiragana] = apiResult;
+                    return apiResult;
+                }
+                
+                return '';
+            };
+
+            // 한자 후보 선택 함수
+            const selectKanjiCandidate = (candidate) => {
+                setNewKanji(candidate.kanji);
+                setKanjiStatus(`✅ 선택됨: ${candidate.kanji} (${candidate.meanings})`);
+                // 선택된 결과를 내장 사전에 저장
+                kanjiDict[newHiragana] = candidate.kanji;
+            };
+
+            // 세트 관리 함수들
+            const createNewSet = async () => {
+                // 간단한 prompt 사용
+                const setName = prompt('새 단어장의 이름을 입력해주세요:');
+                
+                if (setName && setName.trim()) {
+                    const newSetId = Date.now().toString();
+                    const updatedSets = { ...wordSets, [newSetId]: {} };
+                    const updatedNames = { ...setNames, [newSetId]: setName.trim() };
+                    
+                    setWordSets(updatedSets);
+                    setSetNames(updatedNames);
+                    saveAllSets(updatedSets, updatedNames, currentSetId);
+                    
+                    showAlert(`📚 '${setName.trim()}' 단어장이 생성되었습니다!`, 'success');
+                }
+            };
+
+            const switchToSet = (setId) => {
+                if (wordSets[setId]) {
+                    setCurrentSetId(setId);
+                    setWords(wordSets[setId]);
+                    localStorage.setItem('currentWordSet', setId);
+                    showAlert(`📖 '${setNames[setId]}' 단어장으로 전환했습니다.`, 'info');
+                }
+            };
+
+            const deleteSet = async (setId) => {
+                if (setId === 'default') {
+                    showAlert('기본 단어장은 삭제할 수 없습니다.', 'warning');
+                    return;
+                }
+
+                const confirmed = await showCustomPopup(
+                    `정말로 '${setNames[setId]}' 단어장을 삭제하시겠습니까?\n\n삭제된 단어장은 복구할 수 없습니다.`,
+                    '단어장 삭제 확인',
+                    'danger',
+                    true
+                );
+
+                if (confirmed) {
+                    const updatedSets = { ...wordSets };
+                    const updatedNames = { ...setNames };
+                    delete updatedSets[setId];
+                    delete updatedNames[setId];
+
+                    // 현재 세트가 삭제되는 경우 기본 세트로 전환
+                    const newCurrentSet = setId === currentSetId ? 'default' : currentSetId;
+                    
+                    setWordSets(updatedSets);
+                    setSetNames(updatedNames);
+                    if (newCurrentSet !== currentSetId) {
+                        setCurrentSetId(newCurrentSet);
+                        setWords(updatedSets[newCurrentSet]);
+                    }
+                    
+                    saveAllSets(updatedSets, updatedNames, newCurrentSet);
+                    showAlert(`🗑️ '${setNames[setId]}' 단어장이 삭제되었습니다.`, 'info');
+                }
+            };
+
+            // 데이터 백업/복원 기능들
+            const exportToJSON = () => {
+                const dataToExport = {
+                    wordSets: wordSets,
+                    setNames: setNames,
+                    currentSetId: currentSetId,
+                    exportDate: new Date().toISOString(),
+                    version: "1.0"
+                };
+                
+                const jsonString = JSON.stringify(dataToExport, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `japanese_vocabulary_backup_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                
+                showAlert('📁 단어장이 JSON 파일로 내보내졌습니다!', 'success');
+            };
+
+            const importFromJSON = async (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                try {
+                    const text = await file.text();
+                    const importedData = JSON.parse(text);
+                    
+                    if (!importedData.wordSets || !importedData.setNames) {
+                        throw new Error('올바르지 않은 파일 형식입니다.');
+                    }
+                    
+                    const confirmed = await showCustomPopup(
+                        '단어장을 가져오시겠습니까?\n\n기존 데이터는 백업된 후 새 데이터로 교체됩니다.',
+                        '단어장 가져오기 확인',
+                        'warning',
+                        true
+                    );
+                    
+                    if (confirmed) {
+                        // 기존 데이터 백업
+                        const backupData = {
+                            wordSets: wordSets,
+                            setNames: setNames,
+                            currentSetId: currentSetId,
+                            backupDate: new Date().toISOString()
+                        };
+                        localStorage.setItem('japaneseWordSetsBackup', JSON.stringify(backupData));
+                        
+                        // 새 데이터 적용
+                        setWordSets(importedData.wordSets);
+                        setSetNames(importedData.setNames);
+                        
+                        const firstSetId = importedData.currentSetId || Object.keys(importedData.wordSets)[0];
+                        setCurrentSetId(firstSetId);
+                        setWords(importedData.wordSets[firstSetId]);
+                        
+                        saveAllSets(importedData.wordSets, importedData.setNames, firstSetId);
+                        
+                        showAlert(`🎉 단어장을 성공적으로 가져왔습니다! (${Object.keys(importedData.wordSets).length}개 세트)`, 'success');
+                    }
+                } catch (error) {
+                    showAlert('❌ 파일을 읽는 중 오류가 발생했습니다: ' + error.message, 'error');
+                }
+                
+                // 파일 입력 초기화
+                event.target.value = '';
+            };
+
+            const exportToCSV = () => {
+                let csvContent = 'Set Name,Kanji,Hiragana,Korean,Favorite\n';
+                
+                Object.entries(wordSets).forEach(([setId, words]) => {
+                    const setName = setNames[setId] || setId;
+                    Object.entries(words).forEach(([kanji, data]) => {
+                        const row = [
+                            `"${setName}"`,
+                            `"${kanji}"`,
+                            `"${data.hiragana || ''}"`,
+                            `"${data.korean || ''}"`,
+                            data.favorite ? 'true' : 'false'
+                        ].join(',');
+                        csvContent += row + '\n';
+                    });
+                });
+                
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `japanese_vocabulary_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                
+                showAlert('📊 단어장이 CSV 파일로 내보내졌습니다!', 'success');
+            };
+
+            const importFromCSV = async (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                try {
+                    const text = await file.text();
+                    const lines = text.split('\n').filter(line => line.trim());
+                    
+                    if (lines.length < 2) {
+                        throw new Error('CSV 파일이 비어있거나 형식이 잘못되었습니다.');
+                    }
+                    
+                    const confirmed = await showCustomPopup(
+                        'CSV 파일에서 단어장을 가져오시겠습니까?\n\n새로운 세트로 추가되며 기존 데이터는 유지됩니다.',
+                        'CSV 가져오기 확인',
+                        'info',
+                        true
+                    );
+                    
+                    if (!confirmed) return;
+                    
+                    const headers = lines[0].split(',');
+                    const newSets = {};
+                    const newSetNames = {};
+                    
+                    for (let i = 1; i < lines.length; i++) {
+                        const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+                        if (values.length < 4) continue;
+                        
+                        const [setName, kanji, hiragana, korean, favorite] = values;
+                        if (!setName || !kanji) continue;
+                        
+                        const setId = `imported_${setName.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Date.now()}`;
+                        
+                        if (!newSets[setId]) {
+                            newSets[setId] = {};
+                            newSetNames[setId] = `${setName} (가져옴)`;
+                        }
+                        
+                        newSets[setId][kanji] = {
+                            hiragana: hiragana || '',
+                            korean: korean || '',
+                            favorite: favorite === 'true'
+                        };
+                    }
+                    
+                    if (Object.keys(newSets).length === 0) {
+                        throw new Error('유효한 데이터를 찾을 수 없습니다.');
+                    }
+                    
+                    const updatedSets = { ...wordSets, ...newSets };
+                    const updatedNames = { ...setNames, ...newSetNames };
+                    
+                    setWordSets(updatedSets);
+                    setSetNames(updatedNames);
+                    saveAllSets(updatedSets, updatedNames, currentSetId);
+                    
+                    showAlert(`📊 CSV에서 ${Object.keys(newSets).length}개 세트를 가져왔습니다!`, 'success');
+                } catch (error) {
+                    showAlert('❌ CSV 파일을 읽는 중 오류가 발생했습니다: ' + error.message, 'error');
+                }
+                
+                event.target.value = '';
+            };
+
+            const clearAllData = async () => {
+                const confirmed = await showCustomPopup(
+                    '정말로 모든 단어장 데이터를 삭제하시겠습니까?\n\n삭제된 데이터는 복구할 수 없습니다.\n\n삭제 전에 백업을 권장합니다!',
+                    '전체 데이터 삭제',
+                    'danger',
+                    true
+                );
+                
+                if (confirmed) {
+                    // 백업 생성
+                    const backupData = {
+                        wordSets: wordSets,
+                        setNames: setNames,
+                        currentSetId: currentSetId,
+                        deletedDate: new Date().toISOString()
+                    };
+                    localStorage.setItem('japaneseWordSetsBackup', JSON.stringify(backupData));
+                    
+                    // 모든 데이터 삭제
+                    localStorage.removeItem('japaneseWordSets');
+                    localStorage.removeItem('japaneseSetNames');
+                    localStorage.removeItem('currentWordSet');
+                    
+                    // 기본 상태로 초기화
+                    createDefaultSet();
+                    showAlert('🗑️ 모든 데이터가 삭제되었습니다. (백업 저장됨)', 'info');
+                }
+            };
+
+            const restoreBackup = async () => {
+                try {
+                    const backupData = localStorage.getItem('japaneseWordSetsBackup');
+                    if (!backupData) {
+                        showAlert('❌ 백업 데이터를 찾을 수 없습니다.', 'warning');
+                        return;
+                    }
+                    
+                    const parsedBackup = JSON.parse(backupData);
+                    
+                    const confirmed = await showCustomPopup(
+                        `백업 데이터를 복원하시겠습니까?\n\n백업 날짜: ${new Date(parsedBackup.backupDate || parsedBackup.deletedDate).toLocaleString()}\n\n현재 데이터는 덮어쓰여집니다.`,
+                        '백업 복원 확인',
+                        'warning',
+                        true
+                    );
+                    
+                    if (confirmed) {
+                        setWordSets(parsedBackup.wordSets);
+                        setSetNames(parsedBackup.setNames);
+                        setCurrentSetId(parsedBackup.currentSetId);
+                        setWords(parsedBackup.wordSets[parsedBackup.currentSetId]);
+                        
+                        saveAllSets(parsedBackup.wordSets, parsedBackup.setNames, parsedBackup.currentSetId);
+                        
+                        showAlert('🔄 백업이 성공적으로 복원되었습니다!', 'success');
+                    }
+                } catch (error) {
+                    showAlert('❌ 백업 복원 중 오류가 발생했습니다: ' + error.message, 'error');
+                }
+            };
+
+            // 알림 표시 함수 (디버깅 추가)
+            const showAlert = (message, type = 'success') => {
+                console.log('알림 표시 시도:', { message, type }); // 디버깅
+                setNotificationMessage(message);
+                setNotificationType(type);
+                setShowNotification(true);
+                
+                console.log('알림 상태 업데이트됨:', { showNotification: true, message, type }); // 디버깅
+                
+                // 3초 후 자동으로 사라짐
+                setTimeout(() => {
+                    setShowNotification(false);
+                    console.log('알림 자동 닫힘'); // 디버깅
+                }, 3000);
+            };
+
+            // 히라가나가 있는지 확인하는 헬퍼 함수
+            const hasHiraganaData = (wordKey, targetWords) => {
+                if (!targetWords || !targetWords[wordKey]) return false;
+                return (targetWords[wordKey]?.hiragana && targetWords[wordKey].hiragana.trim() !== '') || 
+                       /^[\u3041-\u3096]+$/.test(wordKey);
+            };
+
+            // 히라가나가 있는 단어의 개수를 세는 헬퍼 함수
+            const countHiraganaWords = (targetWords) => {
+                if (!targetWords) return 0;
+                return Object.keys(targetWords).filter(key => hasHiraganaData(key, targetWords)).length;
+            };
+
+            const startQuiz = (mode = 'all', type = 'korean') => {
+                let targetWords = mode === 'favorites' ? getQuizTargetWords() : words;
+                
+                // 히라가나 퀴즈나 둘 다 맞추기 퀴즈의 경우 히라가나가 있는 단어만 필터링
+                if (type === 'hiragana' || type === 'both') {
+                    const filteredWords = {};
+                    Object.keys(targetWords).forEach(key => {
+                        if (hasHiraganaData(key, targetWords)) {
+                            filteredWords[key] = targetWords[key];
+                        }
+                    });
+                    targetWords = filteredWords;
+                }
+                
+                if (Object.keys(targetWords).length === 0) {
+                    if (type === 'hiragana' || type === 'both') {
+                        showAlert('히라가나가 등록된 단어가 없습니다! 먼저 단어에 히라가나를 추가해주세요. 🈶', 'warning');
+                    } else if (mode === 'favorites') {
+                        showAlert('표시된 단어가 없습니다! 먼저 단어장에서 단어를 표시해주세요. ⭐', 'warning');
+                    } else {
+                        showAlert('단어장이 비어있습니다! 먼저 단어를 추가해주세요. 📚', 'warning');
+                    }
+                    return;
+                }
+                
+                setQuizMode(mode);
+                setQuizType(type);
+                setQuizStarted(true);
+                setScore(0);
+                setTotalQuestions(0);
+                setUsedWords(new Set()); // 출제된 문제 초기화
+                setQuizCompleted(false);
+                setHideHiragana(false); // 히라가나 가림 상태 초기화
+                setConvertedQuizAnswer(''); // 변환된 답안 초기화
+                setIsLoadingNextQuestion(false); // 로딩 상태 초기화
+                
+                // 둘 다 맞추기 퀴즈 상태 초기화
+                setUserKoreanAnswer('');
+                setUserHiraganaAnswer('');
+                setConvertedHiraganaAnswer('');
+                setBothQuizResult({ korean: null, hiragana: null });
+                
+                const modeText = mode === 'favorites' ? '표시된 단어만' : '전체 단어';
+                const typeText = type === 'hiragana' ? '히라가나' : type === 'both' ? '둘 다 맞추기' : type === 'japanese' ? '일본어로 쓰기' : '한국어';
+                showAlert(`${modeText} ${typeText} 퀴즈 시작! 화이팅! 🎌`, 'info');
+                nextQuestion();
+            };
+
+            // 퀴즈 대상 단어 가져오기
+            const getQuizTargetWords = () => {
+                let targetWords = {};
+                
+                if (quizMode === 'favorites') {
+                    const currentFavorites = getCurrentSetFavorites();
+                    Object.keys(words).forEach(wordKey => {
+                        if (currentFavorites[wordKey]) {
+                            targetWords[wordKey] = words[wordKey];
+                        }
+                    });
+                } else {
+                    targetWords = words;
+                }
+                
+                // 히라가나 퀴즈나 둘 다 맞추기 퀴즈의 경우 히라가나가 있는 단어만 필터링
+                if (quizType === 'hiragana' || quizType === 'both') {
+                    const filteredWords = {};
+                    Object.keys(targetWords).forEach(key => {
+                        // hiragana 속성이 있거나, 키 자체가 히라가나인 경우 포함
+                        const hasHiragana = (targetWords[key].hiragana && targetWords[key].hiragana.trim() !== '') || 
+                                           /^[\u3041-\u3096]+$/.test(key); // 히라가나 문자 체크
+                        if (hasHiragana) {
+                            filteredWords[key] = targetWords[key];
+                        }
+                    });
+                    return filteredWords;
+                }
+                
+                return targetWords;
+            };
+
+            const nextQuestion = () => {
+                // 이미 로딩 중이면 중복 실행 방지
+                if (isLoadingNextQuestion) return;
+                
+                setIsLoadingNextQuestion(true);
+                
+                const targetWords = getQuizTargetWords();
+                const wordKeys = Object.keys(targetWords);
+                
+                // 현재 usedWords 상태를 최신으로 가져오기
+                setUsedWords(currentUsedWords => {
+                    const availableWords = wordKeys.filter(key => !currentUsedWords.has(key));
+                    
+                    // 모든 단어를 다 푼 경우
+                    if (availableWords.length === 0) {
+                        setQuizCompleted(true);
+                        setCurrentWord(null);
+                        const accuracy = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
+                        const modeText = quizMode === 'favorites' ? '표시된 단어' : '전체 단어';
+                        const typeText = quizType === 'hiragana' ? '히라가나' : quizType === 'both' ? '둘 다 맞추기' : quizType === 'japanese' ? '일본어로 쓰기' : '한국어';
+                        const scoreDisplay = quizType === 'both' ? `${score}점` : `${score}문제 정답`;
+                        showCustomPopup(
+                            `🎉 축하합니다! ${modeText} ${typeText} 퀴즈를 완료했습니다!\n\n총 ${totalQuestions}문제 중 ${scoreDisplay}\n정답률: ${accuracy}%\n\n퀴즈를 다시 시작하려면 '퀴즈 재시작' 버튼을 눌러주세요.`,
+                            '퀴즈 완료!',
+                            'success'
+                        );
+                        setIsLoadingNextQuestion(false);
+                        return currentUsedWords;
+                    }
+                    
+                    // 아직 출제되지 않은 문제 중에서 랜덤 선택
+                    const randomKey = availableWords[Math.floor(Math.random() * availableWords.length)];
+                    
+                    // 중복 방지를 위한 추가 검증
+                    if (currentUsedWords.has(randomKey)) {
+                        console.warn('중복 문제 선택 감지:', randomKey);
+                        // 재귀적으로 다시 선택 (무한루프 방지를 위해 availableWords 사용)
+                        const alternativeWords = availableWords.filter(key => !currentUsedWords.has(key));
+                        if (alternativeWords.length > 0) {
+                            const alternativeKey = alternativeWords[0]; // 첫 번째 사용 가능한 단어 선택
+                            setCurrentWord(alternativeKey);
+                        } else {
+                            setCurrentWord(randomKey); // fallback
+                        }
+                    } else {
+                        setCurrentWord(randomKey);
+                    }
+                    
+                    setUserAnswer('');
+                    setResult(null);
+                    setConvertedQuizAnswer(''); // 변환된 답안 초기화
+                    
+                    // 둘 다 맞추기 퀴즈 상태 초기화
+                    setUserKoreanAnswer('');
+                    setUserHiraganaAnswer('');
+                    setConvertedHiraganaAnswer('');
+                    setBothQuizResult({ korean: null, hiragana: null });
+                    
+                    // 로딩 상태 해제
+                    setTimeout(() => setIsLoadingNextQuestion(false), 100);
+                    
+                    return currentUsedWords;
+                });
+            };
+
+            const checkAnswer = () => {
+                if (!currentWord) return;
+                
+                if (quizType === 'both') {
+                    // 둘 다 맞추기 퀴즈 로직
+                    checkBothAnswers();
+                } else {
+                    // 기존 단일 답안 퀴즈 로직
+                    checkSingleAnswer();
+                }
+            };
+
+            const checkSingleAnswer = () => {
+                let correct, typeText;
+                if (quizType === 'hiragana') {
+                    // hiragana 속성이 있으면 사용하고, 없으면 키 자체를 히라가나로 사용
+                    correct = words[currentWord].hiragana || currentWord;
+                    typeText = '히라가나';
+                } else if (quizType === 'japanese') {
+                    // 일본어 퀴즈: 히라가나 키 또는 한자를 정답으로
+                    correct = words[currentWord].kanji || currentWord;
+                    typeText = '일본어';
+                } else {
+                    correct = words[currentWord].korean;
+                    typeText = '한국어';
+                }
+                
+                setTotalQuestions(prev => prev + 1);
+                
+                // 정답/오답 관계없이 출제된 문제로 표시 (중복 방지)
+                setUsedWords(prev => {
+                    const newUsedWords = new Set(prev);
+                    newUsedWords.add(currentWord);
+                    console.log('문제 추가:', currentWord, '총 출제:', newUsedWords.size);
+                    return newUsedWords;
+                });
+                
+                // 답안 정리 (공백 제거)
+                let cleanUserAnswer = userAnswer.trim();
+                const cleanCorrectAnswer = correct ? correct.trim() : '';
+                
+                // 히라가나 퀴즈일 때 한글 입력을 히라가나로 변환해서 체크
+                if (quizType === 'hiragana') {
+                    const convertedAnswer = convertHangulToHiragana(cleanUserAnswer);
+                    // 원본 입력과 변환된 입력 둘 다 체크
+                    if (cleanUserAnswer === cleanCorrectAnswer || convertedAnswer === cleanCorrectAnswer) {
+                        setScore(prev => prev + 1);
+                        setResult({ type: 'correct', message: '✅ 정답!' });
+                        showAlert('🎉 정답입니다!', 'success');
+                    } else {
+                        setResult({ type: 'incorrect', message: `❌ 틀렸습니다. 정답: ${correct}` });
+                        showAlert(`❌ 틀렸어요! 정답은 "${correct}" 입니다.`, 'error');
+                    }
+                } else if (quizType === 'japanese') {
+                    // 일본어 퀴즈: 한자와 히라가나 둘 다 정답으로 인정
+                    const hiraganaAnswer = words[currentWord].hiragana || currentWord;
+                    const kanjiAnswer = words[currentWord].kanji;
+                    
+                    let isCorrect = false;
+                    let correctAnswers = [];
+                    
+                    // 히라가나 정답 체크 (한국어 입력도 히라가나로 변환해서 체크)
+                    const convertedAnswer = convertHangulToHiragana(cleanUserAnswer);
+                    if (cleanUserAnswer === hiraganaAnswer.trim() || convertedAnswer === hiraganaAnswer.trim()) {
+                        isCorrect = true;
+                    }
+                    correctAnswers.push(hiraganaAnswer);
+                    
+                    // 한자 정답 체크 (한자가 있는 경우)
+                    if (kanjiAnswer && kanjiAnswer.trim() !== '') {
+                        if (cleanUserAnswer === kanjiAnswer.trim()) {
+                            isCorrect = true;
+                        }
+                        correctAnswers.push(kanjiAnswer);
+                    }
+                    
+                    if (isCorrect) {
+                        setScore(prev => prev + 1);
+                        setResult({ type: 'correct', message: '✅ 정답!' });
+                        showAlert('🎉 정답입니다!', 'success');
+                    } else {
+                        const answerText = correctAnswers.length > 1 ? correctAnswers.join(' / ') : correctAnswers[0];
+                        setResult({ type: 'incorrect', message: `❌ 틀렸습니다. 정답: ${answerText}` });
+                        showAlert(`❌ 틀렸어요! 정답은 "${answerText}" 입니다.`, 'error');
+                    }
+                } else {
+                    // 한국어 퀴즈일 때는 기존 로직
+                    if (cleanUserAnswer === cleanCorrectAnswer) {
+                        setScore(prev => prev + 1);
+                        setResult({ type: 'correct', message: '✅ 정답!' });
+                        showAlert('🎉 정답입니다!', 'success');
+                    } else {
+                        setResult({ type: 'incorrect', message: `❌ 틀렸습니다. 정답: ${correct}` });
+                        showAlert(`❌ 틀렸어요! 정답은 "${correct}" 입니다.`, 'error');
+                    }
+                }
+                
+                setTimeout(() => {
+                    nextQuestion();
+                }, 2000);
+            };
+
+            const checkBothAnswers = () => {
+                const correctKorean = words[currentWord].korean;
+                const correctHiragana = words[currentWord].hiragana || currentWord;
+                
+                setTotalQuestions(prev => prev + 1);
+                
+                // 정답/오답 관계없이 출제된 문제로 표시 (중복 방지)
+                setUsedWords(prev => {
+                    const newUsedWords = new Set(prev);
+                    newUsedWords.add(currentWord);
+                    console.log('문제 추가:', currentWord, '총 출제:', newUsedWords.size);
+                    return newUsedWords;
+                });
+                
+                // 한국어 답안 체크
+                const cleanKoreanAnswer = userKoreanAnswer.trim();
+                const cleanCorrectKorean = correctKorean ? correctKorean.trim() : '';
+                const koreanCorrect = cleanKoreanAnswer === cleanCorrectKorean;
+                
+                // 히라가나 답안 체크 (한글 입력도 변환해서 체크)
+                const cleanHiraganaAnswer = userHiraganaAnswer.trim();
+                const cleanCorrectHiragana = correctHiragana ? correctHiragana.trim() : '';
+                const convertedHiraganaInput = convertHangulToHiragana(cleanHiraganaAnswer);
+                const hiraganaCorrect = cleanHiraganaAnswer === cleanCorrectHiragana || convertedHiraganaInput === cleanCorrectHiragana;
+                
+                // 결과 저장
+                setBothQuizResult({
+                    korean: koreanCorrect,
+                    hiragana: hiraganaCorrect
+                });
+                
+                // 점수 계산 (둘 다 맞춰야 1점, 하나만 맞추면 0.5점)
+                if (koreanCorrect && hiraganaCorrect) {
+                    setScore(prev => prev + 1);
+                    setResult({ type: 'correct', message: '🎉 완벽! 한국어와 히라가나 모두 정답!' });
+                    showAlert('🎉 완벽합니다! 둘 다 정답!', 'success');
+                } else if (koreanCorrect || hiraganaCorrect) {
+                    setScore(prev => prev + 0.5);
+                    const correctPart = koreanCorrect ? '한국어' : '히라가나';
+                    const wrongPart = koreanCorrect ? '히라가나' : '한국어';
+                    const wrongAnswer = koreanCorrect ? correctHiragana : correctKorean;
+                    setResult({ 
+                        type: 'partial', 
+                        message: `⚡ 부분 정답! ${correctPart}는 맞고, ${wrongPart}는 "${wrongAnswer}"` 
+                    });
+                    showAlert(`⚡ 부분 정답! ${correctPart}만 맞췄어요. +0.5점`, 'warning');
+                } else {
+                    setResult({ 
+                        type: 'incorrect', 
+                        message: `❌ 모두 틀렸습니다. 한국어: ${correctKorean}, 히라가나: ${correctHiragana}` 
+                    });
+                    showAlert('❌ 둘 다 틀렸어요. 다시 도전해보세요!', 'error');
+                }
+                
+                setTimeout(() => {
+                    nextQuestion();
+                }, 3000); // 둘 다 맞추기는 결과를 더 오래 보여줌
+            };
+
+            const addNewWord = async () => {
+                if (!newHiragana || !newKorean) {
+                    await showCustomPopup('히라가나와 한국어를 모두 입력해주세요!', '입력 오류', 'warning');
+                    return;
+                }
+
+                // 수정 모드가 아닐 때 중복 확인
+                if (!isEditMode && words[newHiragana]) {
+                    await showCustomPopup(`'${newHiragana}' 히라가나는 이미 존재합니다!`, '중복 오류', 'error');
+                    return;
+                }
+
+                // 수정 모드일 때: 히라가나가 변경되었고, 새 히라가나가 이미 존재하는 경우
+                if (isEditMode && newHiragana !== editingWordKey && words[newHiragana]) {
+                    await showCustomPopup(`'${newHiragana}' 히라가나는 이미 존재합니다!`, '중복 오류', 'error');
+                    return;
+                }
+
+                const newWordData = {
+                    kanji: newKanji.trim(),
+                    korean: newKorean.trim()
+                };
+
+                setWords(prev => {
+                    const updatedWords = { ...prev };
+                    
+                    // 수정 모드일 때 기존 단어 삭제 (히라가나가 변경된 경우)
+                    if (isEditMode && newHiragana !== editingWordKey) {
+                        delete updatedWords[editingWordKey];
+                    }
+                    
+                    // 새 단어 추가/수정
+                    updatedWords[newHiragana] = newWordData;
+                    return updatedWords;
+                });
+
+                // 폼 초기화
+                const isEdit = isEditMode;
+                setNewKanji('');
+                setNewHiragana('');
+                setNewKorean('');
+                setHangulInput('');
+                setKanjiStatus('');
+                setKanjiCandidates([]);
+                setIsEditMode(false);
+                setEditingWordKey(null);
+                
+                if (isEdit) {
+                    showCustomPopup('단어가 성공적으로 수정되었습니다! ✅', '수정 완료', 'success');
+                    setCurrentTab('words'); // 단어장으로 돌아가기
+                } else {
+                    showCustomPopup('단어가 성공적으로 추가되었습니다! 🎉', '추가 완료', 'success');
+                }
+            };
+
+            const useConvertedWord = () => {
+                if (convertedHiragana) {
+                    setNewHiragana(convertedHiragana);
+                }
+            };
+
+            // 단어 수정 시작 - 단어 추가 탭으로 이동하여 수정
+            const startEditWord = (wordKey) => {
+                const wordData = words[wordKey];
+                
+                // 수정 모드 활성화
+                setIsEditMode(true);
+                setEditingWordKey(wordKey);
+                
+                // 기존 데이터를 입력 필드에 설정
+                setNewHiragana(wordKey);
+                setNewKanji(wordData.kanji || '');
+                setNewKorean(wordData.korean || '');
+                
+                // 단어 추가 탭으로 이동
+                setCurrentTab('add');
+                
+                showAlert(`📝 '${wordKey}' 단어를 수정 모드로 전환했습니다.`, 'info');
+            };
+
+            // 수정 취소
+            const cancelEdit = () => {
+                setIsEditMode(false);
+                setEditingWordKey(null);
+                setNewKanji('');
+                setNewHiragana('');
+                setNewKorean('');
+                setHangulInput('');
+                setKanjiStatus('');
+                setKanjiCandidates([]);
+                
+                showAlert('수정이 취소되었습니다.', 'info');
+            };
+
+            const deleteWord = async (wordKey) => {
+                const confirmed = await showCustomPopup(
+                    `정말로 '${wordKey}' 단어를 삭제하시겠습니까?\n\n삭제된 단어는 복구할 수 없습니다.`, 
+                    '단어 삭제 확인', 
+                    'danger', 
+                    true  // 취소 버튼 표시
+                );
+                
+                if (confirmed) {
+                    setWords(prev => {
+                        const newWords = { ...prev };
+                        delete newWords[wordKey];
+                        return newWords;
+                    });
+                    
+                    showAlert(`🗑️ '${wordKey}' 단어가 삭제되었습니다.`, 'info');
+                }
+            };
+
+            const handleKeyPress = (e) => {
+                if (e.key === 'Enter') {
+                    if (quizType === 'both') {
+                        // 둘 다 맞추기 퀴즈에서는 둘 다 입력했을 때만 체크
+                        if (userKoreanAnswer.trim() && userHiraganaAnswer.trim()) {
+                            checkAnswer();
+                        }
+                    } else {
+                        checkAnswer();
+                    }
+                }
+            };
+
+            const handleBothQuizKeyPress = (e, type) => {
+                if (e.key === 'Enter') {
+                    if (type === 'korean' && userKoreanAnswer.trim() && userHiraganaAnswer.trim()) {
+                        checkAnswer();
+                    } else if (type === 'hiragana' && userKoreanAnswer.trim() && userHiraganaAnswer.trim()) {
+                        checkAnswer();
+                    }
+                }
+            };
+
+            return (
+                <div className="app">
+                    {/* 커스텀 알림 팝업 - 디버깅 */}
+                    {console.log('렌더링 시 알림 상태:', { showNotification, notificationMessage, notificationType })}
+                    {showNotification && (
+                        <div className={`notification ${notificationType}`}>
+                            <span>{notificationMessage}</span>
+                            <button 
+                                className="notification-close"
+                                onClick={() => {
+                                    console.log('알림 수동 닫기');
+                                    setShowNotification(false);
+                                }}
+                            >
+                                ×
+                            </button>
+                        </div>
+                    )}
+
+                    <header className="header">
+                        <div className="logo">
+                            🗾 일본어 단어 공부
+                        </div>
+                        
+                        {/* 단어장 세트 선택 */}
+                        <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '1rem',
+                            background: 'rgba(255, 255, 255, 0.1)',
+                            padding: '0.5rem 1rem',
+                            borderRadius: '15px',
+                            border: '1px solid rgba(255, 255, 255, 0.2)'
+                        }}>
+                            <select
+                                value={currentSetId}
+                                onChange={(e) => switchToSet(e.target.value)}
+                                style={{
+                                    background: 'rgba(255, 255, 255, 0.9)',
+                                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                                    borderRadius: '8px',
+                                    padding: '0.3rem 0.8rem',
+                                    fontSize: '0.9rem',
+                                    color: '#2c3e50',
+                                    fontWeight: '500'
+                                }}
+                            >
+                                {Object.entries(setNames).map(([setId, setName]) => (
+                                    <option key={setId} value={setId}>
+                                        📚 {setName} ({Object.keys(wordSets[setId] || {}).length}개)
+                                    </option>
+                                ))}
+                            </select>
+                            <button
+                                onClick={createNewSet}
+                                style={{
+                                    background: 'rgba(46, 204, 113, 0.8)',
+                                    border: 'none',
+                                    color: 'white',
+                                    padding: '0.3rem 0.8rem',
+                                    borderRadius: '8px',
+                                    fontSize: '0.8rem',
+                                    fontWeight: '500',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease'
+                                }}
+                                onMouseEnter={(e) => e.target.style.background = 'rgba(46, 204, 113, 1)'}
+                                onMouseLeave={(e) => e.target.style.background = 'rgba(46, 204, 113, 0.8)'}
+                                title="새 단어장 만들기"
+                            >
+                                ➕ 새 세트
+                            </button>
+                            {currentSetId !== 'default' && (
+                                <button
+                                    onClick={() => deleteSet(currentSetId)}
+                                    style={{
+                                        background: 'rgba(231, 76, 60, 0.8)',
+                                        border: 'none',
+                                        color: 'white',
+                                        padding: '0.3rem 0.8rem',
+                                        borderRadius: '8px',
+                                        fontSize: '0.8rem',
+                                        fontWeight: '500',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.3s ease'
+                                    }}
+                                    onMouseEnter={(e) => e.target.style.background = 'rgba(231, 76, 60, 1)'}
+                                    onMouseLeave={(e) => e.target.style.background = 'rgba(231, 76, 60, 0.8)'}
+                                    title="현재 단어장 삭제"
+                                >
+                                    🗑️
+                                </button>
+                            )}
+                        </div>
+
+                        <nav className="nav">
+                            <button 
+                                className={`nav-btn ${currentTab === 'quiz' ? 'active' : ''}`}
+                                onClick={() => setCurrentTab('quiz')}
+                            >
+                                📝 퀴즈
+                            </button>
+                            <button 
+                                className={`nav-btn ${currentTab === 'words' ? 'active' : ''}`}
+                                onClick={() => setCurrentTab('words')}
+                            >
+                                📚 단어장
+                            </button>
+                            <button 
+                                className={`nav-btn ${currentTab === 'add' ? 'active' : ''}`}
+                                onClick={() => setCurrentTab('add')}
+                            >
+                                ➕ 단어 추가
+                            </button>
+                            <button 
+                                className={`nav-btn ${currentTab === 'data' ? 'active' : ''}`}
+                                onClick={() => setCurrentTab('data')}
+                            >
+                                💾 데이터 관리
+                            </button>
+                        </nav>
+                    </header>
+
+                    <main className="main">
+                        <div className="container">
+                            {currentTab === 'quiz' && (
+                                <div className="card fade-in">
+                                    <div className="score">
+                                        점수: {score}/{totalQuestions}
+                                        {quizStarted && !quizCompleted && (
+                                            <>
+                                                <div style={{ fontSize: '0.9rem', color: '#7f8c8d', marginTop: '0.5rem' }}>
+                                                    {quizMode === 'favorites' ? '⭐ 표시된 단어' : '📚 전체 단어'} {quizType === 'hiragana' ? '🈶 히라가나' : quizType === 'both' ? '💯 둘 다 맞추기' : quizType === 'japanese' ? '🗾 일본어로 쓰기' : '🇰🇷 한국어'} - 
+                                                    진행률: {usedWords.size}/{Object.keys(getQuizTargetWords()).length} 문제 완료
+                                                </div>
+                                                {currentWord && words[currentWord].kanji && words[currentWord].kanji !== currentWord && (
+                                                    <div style={{ fontSize: '0.8rem', color: '#3498db', marginTop: '0.3rem' }}>
+                                                        💡 우측 상단 {hideHiragana ? '👁️' : '🙈'} 버튼으로 히라가나를 가리거나 볼 수 있어요!
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
+                                    
+                                    {!quizStarted || quizCompleted ? (
+                                        <div style={{ textAlign: 'center' }}>
+                                            <h2 style={{ marginBottom: '2rem', color: '#2c3e50' }}>
+                                                {quizCompleted ? 
+                                                    `🎉 ${quizMode === 'favorites' ? '표시된 단어' : '전체 단어'} ${quizType === 'hiragana' ? '히라가나' : quizType === 'both' ? '둘 다 맞추기' : quizType === 'japanese' ? '일본어로 쓰기' : '한국어'} 퀴즈 완료! 다시 도전해보세요!` : 
+                                                    '일본어 단어 퀴즈를 시작해보세요! 🎌'
+                                                }
+                                            </h2>
+                                            {/* 깔끔한 2단계 퀴즈 선택 UI */}
+                                            <div style={{ background: 'rgba(52, 152, 219, 0.05)', padding: '2rem', borderRadius: '16px', border: '1px solid rgba(52, 152, 219, 0.2)' }}>
+                                                {/* 1단계: 퀴즈 범위 선택 */}
+                                                <div style={{ marginBottom: '2rem' }}>
+                                                    <h3 style={{ color: '#2c3e50', marginBottom: '1rem', fontSize: '1.1rem' }}>📝 퀴즈 범위</h3>
+                                                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                                        <button 
+                                                            className={`btn ${selectedRange === 'all' ? 'btn-primary' : 'btn-secondary'}`}
+                                                            onClick={() => setSelectedRange('all')}
+                                                            style={{ 
+                                                                minWidth: '180px',
+                                                                background: selectedRange === 'all' ? '#3498db' : '#bdc3c7',
+                                                                border: 'none',
+                                                                borderRadius: '8px',
+                                                                padding: '0.8rem 1.2rem',
+                                                                fontWeight: '600',
+                                                                transition: 'all 0.2s ease'
+                                                            }}
+                                                        >
+                                                            📚 전체 단어 ({Object.keys(words).length}개)
+                                                        </button>
+                                                        <button 
+                                                            className={`btn ${selectedRange === 'favorites' ? 'btn-primary' : 'btn-secondary'}`}
+                                                            onClick={() => setSelectedRange('favorites')}
+                                                            disabled={Object.keys(getCurrentSetFavorites()).length === 0}
+                                                            style={{ 
+                                                                minWidth: '180px',
+                                                                background: selectedRange === 'favorites' ? '#3498db' : '#bdc3c7',
+                                                                border: 'none',
+                                                                borderRadius: '8px',
+                                                                padding: '0.8rem 1.2rem',
+                                                                fontWeight: '600',
+                                                                transition: 'all 0.2s ease',
+                                                                opacity: Object.keys(getCurrentSetFavorites()).length === 0 ? 0.5 : 1
+                                                            }}
+                                                        >
+                                                            ⭐ 표시된 단어만 ({Object.keys(getCurrentSetFavorites()).length}개)
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* 2단계: 퀴즈 타입 선택 */}
+                                                <div style={{ marginBottom: '2rem' }}>
+                                                    <h3 style={{ color: '#2c3e50', marginBottom: '1rem', fontSize: '1.1rem' }}>🎯 퀴즈 타입</h3>
+                                                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                                        <button 
+                                                            className={`btn ${selectedType === 'korean' ? 'btn-success' : 'btn-secondary'}`}
+                                                            onClick={() => setSelectedType('korean')}
+                                                            style={{ 
+                                                                minWidth: '150px',
+                                                                background: selectedType === 'korean' ? '#27ae60' : '#bdc3c7',
+                                                                border: 'none',
+                                                                borderRadius: '8px',
+                                                                padding: '0.8rem 1rem',
+                                                                fontWeight: '600',
+                                                                transition: 'all 0.2s ease'
+                                                            }}
+                                                        >
+                                                            🇰🇷 한국어 뜻
+                                                        </button>
+                                                        <button 
+                                                            className={`btn ${selectedType === 'hiragana' ? 'btn-success' : 'btn-secondary'}`}
+                                                            onClick={() => setSelectedType('hiragana')}
+                                                            disabled={(() => {
+                                                                const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : words;
+                                                                return countHiraganaWords(targetWords) === 0;
+                                                            })()}
+                                                            style={{ 
+                                                                minWidth: '150px',
+                                                                background: selectedType === 'hiragana' ? '#27ae60' : '#bdc3c7',
+                                                                border: 'none',
+                                                                borderRadius: '8px',
+                                                                padding: '0.8rem 1rem',
+                                                                fontWeight: '600',
+                                                                transition: 'all 0.2s ease',
+                                                                opacity: (() => {
+                                                                    const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : words;
+                                                                    return countHiraganaWords(targetWords) === 0 ? 0.5 : 1;
+                                                                })()
+                                                            }}
+                                                        >
+                                                            🈶 히라가나
+                                                        </button>
+                                                        <button 
+                                                            className={`btn ${selectedType === 'both' ? 'btn-success' : 'btn-secondary'}`}
+                                                            onClick={() => setSelectedType('both')}
+                                                            disabled={(() => {
+                                                                const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : words;
+                                                                return countHiraganaWords(targetWords) === 0;
+                                                            })()}
+                                                            style={{ 
+                                                                minWidth: '150px',
+                                                                background: selectedType === 'both' ? '#27ae60' : '#bdc3c7',
+                                                                border: 'none',
+                                                                borderRadius: '8px',
+                                                                padding: '0.8rem 1rem',
+                                                                fontWeight: '600',
+                                                                transition: 'all 0.2s ease',
+                                                                opacity: (() => {
+                                                                    const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : words;
+                                                                    return countHiraganaWords(targetWords) === 0 ? 0.5 : 1;
+                                                                })()
+                                                            }}
+                                                        >
+                                                            💯 둘 다 맞추기
+                                                        </button>
+                                                        <button 
+                                                            className={`btn ${selectedType === 'japanese' ? 'btn-success' : 'btn-secondary'}`}
+                                                            onClick={() => setSelectedType('japanese')}
+                                                            style={{ 
+                                                                minWidth: '150px',
+                                                                background: selectedType === 'japanese' ? '#27ae60' : '#bdc3c7',
+                                                                border: 'none',
+                                                                borderRadius: '8px',
+                                                                padding: '0.8rem 1rem',
+                                                                fontWeight: '600',
+                                                                transition: 'all 0.2s ease'
+                                                            }}
+                                                        >
+                                                            🗾 일본어로 쓰기
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* 3단계: 퀴즈 시작 버튼 */}
+                                                <div style={{ textAlign: 'center' }}>
+                                                    <button 
+                                                        className="btn btn-primary"
+                                                        onClick={() => startQuiz(selectedRange, selectedType)}
+                                                        style={{ 
+                                                            background: 'linear-gradient(45deg, #e74c3c, #c0392b)',
+                                                            border: 'none',
+                                                            padding: '1rem 2rem',
+                                                            fontSize: '1.1rem',
+                                                            fontWeight: 'bold',
+                                                            minWidth: '200px'
+                                                        }}
+                                                        disabled={(() => {
+                                                            if (selectedType === 'hiragana' || selectedType === 'both') {
+                                                                const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : words;
+                                                                return countHiraganaWords(targetWords) === 0;
+                                                            }
+                                                            if (selectedRange === 'favorites') {
+                                                                return Object.keys(getCurrentSetFavorites()).length === 0;
+                                                            }
+                                                            return Object.keys(words).length === 0;
+                                                        })()}
+                                                    >
+                                                        🚀 퀴즈 시작하기
+                                                    </button>
+                                                </div>
+                                                {quizCompleted && (
+                                                    <button 
+                                                        className="btn btn-success" 
+                                                        onClick={() => {
+                                                            const targetWords = getQuizTargetWords();
+                                                            const accuracy = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
+                                                            const modeText = quizMode === 'favorites' ? '표시된 단어' : '전체 단어';
+                                                            const typeText = quizType === 'hiragana' ? '히라가나' : quizType === 'both' ? '둘 다 맞추기' : quizType === 'japanese' ? '일본어로 쓰기' : '한국어';
+                                                            const scoreText = quizType === 'both' ? `점수: ${score}점` : `정답수: ${score}개`;
+                                                            showCustomPopup(
+                                                                `📊 ${modeText} ${typeText} 퀴즈 최종 결과\n\n총 문제수: ${Object.keys(targetWords).length}개\n${scoreText}\n오답수: ${totalQuestions - score}개\n정답률: ${accuracy}%\n\n${accuracy >= 90 ? '🏆 완벽합니다!' : accuracy >= 70 ? '👍 잘했어요!' : '💪 더 연습해보세요!'}`,
+                                                                '최종 점수',
+                                                                'info'
+                                                            );
+                                                        }}
+                                                        style={{ marginTop: '1rem' }}
+                                                    >
+                                                        📊 결과 보기
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {currentWord && (
+                                                <div className="quiz-word">
+                                                    {quizType === 'japanese' ? (
+                                                        // 일본어 퀴즈: 한국어 뜻을 문제로 표시
+                                                        <div className="korean-question" style={{ 
+                                                            fontSize: '2rem', 
+                                                            fontWeight: 'bold', 
+                                                            color: '#2c3e50',
+                                                            textAlign: 'center',
+                                                            padding: '2rem'
+                                                        }}>
+                                                            {words[currentWord].korean}
+                                                            <div style={{ 
+                                                                fontSize: '1rem', 
+                                                                color: '#7f8c8d', 
+                                                                marginTop: '1rem',
+                                                                fontWeight: 'normal'
+                                                            }}>
+                                                                👇 이 뜻에 해당하는 일본어를 입력하세요
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        // 기존 퀴즈들: 일본어를 문제로 표시
+                                                        <>
+                                                            {words[currentWord].kanji && (
+                                                                <div className="kanji">{words[currentWord].kanji}</div>
+                                                            )}
+                                                            <div className="hiragana-container">
+                                                                <div className={`hiragana ${hideHiragana ? 'hiragana-hidden' : ''}`}>
+                                                                    {currentWord}
+                                                                </div>
+                                                                {hideHiragana && (
+                                                                    <div className="hiragana-overlay">
+                                                                        👁️히라가나 보기
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                    {/* 한자가 있을 때만 히라가나 가림 버튼 표시 (japanese 퀴즈에서는 제외) */}
+                                                    {quizType !== 'japanese' && words[currentWord].kanji && words[currentWord].kanji !== currentWord && (
+                                                        <button 
+                                                            className="hiragana-toggle-btn"
+                                                            onClick={() => setHideHiragana(!hideHiragana)}
+                                                            title={hideHiragana ? "히라가나 보기" : "히라가나 가리기"}
+                                                        >
+                                                            {hideHiragana ? '👁️' : '🙈'}
+                                                        </button>
+                                                    )}
+                                                    
+                                                    {/* 즐겨찾기/표시 버튼 */}
+                                                    <button 
+                                                        className={`quiz-favorite-btn ${getCurrentSetFavorites()[currentWord] ? 'favorited' : ''}`}
+                                                        onClick={() => toggleWordFavorite(currentWord)}
+                                                        title={getCurrentSetFavorites()[currentWord] ? "표시 해제" : "표시 추가"}
+                                                        style={{
+                                                            background: getCurrentSetFavorites()[currentWord] ? 
+                                                                'linear-gradient(45deg, #f39c12, #e67e22)' : 
+                                                                'rgba(189, 195, 199, 0.8)'
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            if (getCurrentSetFavorites()[currentWord]) {
+                                                                e.target.style.background = 'linear-gradient(45deg, #e67e22, #d35400)';
+                                                            } else {
+                                                                e.target.style.background = 'rgba(149, 165, 166, 0.9)';
+                                                            }
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            if (getCurrentSetFavorites()[currentWord]) {
+                                                                e.target.style.background = 'linear-gradient(45deg, #f39c12, #e67e22)';
+                                                            } else {
+                                                                e.target.style.background = 'rgba(189, 195, 199, 0.8)';
+                                                            }
+                                                        }}
+                                                    >
+                                                        {getCurrentSetFavorites()[currentWord] ? '⭐' : '☆'}
+                                                    </button>
+                                                </div>
+                                            )}
+                                            
+                                            {quizType === 'both' ? (
+                                                // 둘 다 맞추기 퀴즈용 UI
+                                                <div>
+                                                    <div className="input-group" style={{ marginBottom: '1.5rem' }}>
+                                                        <label className="input-label">한국어 뜻:</label>
+                                                        <input
+                                                            type="text"
+                                                            className="input-field"
+                                                            value={userKoreanAnswer}
+                                                            onChange={(e) => setUserKoreanAnswer(e.target.value)}
+                                                            onKeyPress={(e) => handleBothQuizKeyPress(e, 'korean')}
+                                                            placeholder="한국어 뜻을 입력하세요... (예: 학교)"
+                                                            style={{
+                                                                border: bothQuizResult.korean === true ? '2px solid #27ae60' :
+                                                                       bothQuizResult.korean === false ? '2px solid #e74c3c' :
+                                                                       '1px solid #bdc3c7'
+                                                            }}
+                                                        />
+                                                        {bothQuizResult.korean === true && (
+                                                            <div style={{ color: '#27ae60', fontSize: '0.8rem', marginTop: '0.3rem' }}>
+                                                                ✅ 한국어 정답!
+                                                            </div>
+                                                        )}
+                                                        {bothQuizResult.korean === false && (
+                                                            <div style={{ color: '#e74c3c', fontSize: '0.8rem', marginTop: '0.3rem' }}>
+                                                                ❌ 한국어 오답
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    <div className="input-group">
+                                                        <label className="input-label">히라가나:</label>
+                                                        <input
+                                                            type="text"
+                                                            className="input-field"
+                                                            value={userHiraganaAnswer}
+                                                            onChange={(e) => setUserHiraganaAnswer(e.target.value)}
+                                                            onKeyPress={(e) => handleBothQuizKeyPress(e, 'hiragana')}
+                                                            placeholder="히라가나를 입력하세요... (한글로도 가능)"
+                                                            style={{
+                                                                border: bothQuizResult.hiragana === true ? '2px solid #27ae60' :
+                                                                       bothQuizResult.hiragana === false ? '2px solid #e74c3c' :
+                                                                       '1px solid #bdc3c7'
+                                                            }}
+                                                        />
+                                                        {convertedHiraganaAnswer && userHiraganaAnswer && (
+                                                            <div style={{
+                                                                marginTop: '0.5rem',
+                                                                padding: '0.5rem',
+                                                                background: 'rgba(46, 204, 113, 0.1)',
+                                                                borderRadius: '8px',
+                                                                border: '1px solid rgba(46, 204, 113, 0.3)',
+                                                                fontSize: '0.9rem',
+                                                                color: '#27ae60'
+                                                            }}>
+                                                                🔄 한글 → 히라가나 변환: <strong>{convertedHiraganaAnswer}</strong>
+                                                            </div>
+                                                        )}
+                                                        {bothQuizResult.hiragana === true && (
+                                                            <div style={{ color: '#27ae60', fontSize: '0.8rem', marginTop: '0.3rem' }}>
+                                                                ✅ 히라가나 정답!
+                                                            </div>
+                                                        )}
+                                                        {bothQuizResult.hiragana === false && (
+                                                            <div style={{ color: '#e74c3c', fontSize: '0.8rem', marginTop: '0.3rem' }}>
+                                                                ❌ 히라가나 오답
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                // 기존 단일 답안 퀴즈용 UI
+                                                <div className="input-group">
+                                                    <label className="input-label">
+                                                        {quizType === 'hiragana' ? '히라가나:' : '한국어 뜻:'}
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        className="input-field"
+                                                        value={userAnswer}
+                                                        onChange={(e) => {
+                                                            setUserAnswer(e.target.value);
+                                                            // 히라가나/일본어 퀴즈일 때 실시간 변환 표시
+                                                            if (quizType === 'hiragana' || quizType === 'japanese') {
+                                                                const converted = convertHangulToHiragana(e.target.value);
+                                                                setConvertedQuizAnswer(converted);
+                                                            }
+                                                        }}
+                                                        onKeyPress={handleKeyPress}
+                                                        placeholder={
+                                                            quizType === 'hiragana' ? "히라가나를 입력하세요... (한글로도 가능)" : 
+                                                            quizType === 'japanese' ? "일본어를 입력하세요... (한글로도 가능)" :
+                                                            "한국어 뜻을 입력하세요... (예: 먹다)"
+                                                        }
+                                                    />
+                                                    {(quizType === 'hiragana' || quizType === 'japanese') && (
+                                                        <div style={{
+                                                            marginTop: '0.5rem',
+                                                            padding: '0.5rem',
+                                                            background: 'rgba(46, 204, 113, 0.1)',
+                                                            borderRadius: '8px',
+                                                            border: '1px solid rgba(46, 204, 113, 0.3)',
+                                                            fontSize: '0.9rem',
+                                                            color: '#27ae60'
+                                                        }}>
+                                                            <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>
+                                                                💡 한글로 입력해도 자동으로 히라가나로 변환되어 채점됩니다!
+                                                            </div>
+                                                            <div>
+                                                                🔄 한글 → 히라가나 변환: <strong>
+                                                                    {userAnswer ? convertHangulToHiragana(userAnswer) || userAnswer : '(입력하면 여기에 변환 결과가 표시됩니다)'}
+                                                                </strong>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {result && (
+                                                <div className={`result ${result.type}`}>
+                                                    {result.message}
+                                                </div>
+                                            )}
+
+                                            <div className="btn-group">
+                                                <button 
+                                                    className="btn btn-success" 
+                                                    onClick={checkAnswer}
+                                                    disabled={quizType === 'both' && (!userKoreanAnswer.trim() || !userHiraganaAnswer.trim())}
+                                                    title={quizType === 'both' && (!userKoreanAnswer.trim() || !userHiraganaAnswer.trim()) ? 
+                                                          '한국어와 히라가나를 모두 입력해주세요' : ''}
+                                                >
+                                                    {quizType === 'both' ? '둘 다 정답 확인' : '정답 확인'}
+                                                </button>
+                                                <button 
+                                                    className="btn btn-warning" 
+                                                    onClick={nextQuestion}
+                                                    disabled={isLoadingNextQuestion}
+                                                >
+                                                    {isLoadingNextQuestion ? '⏳ 로딩중...' : '다음 문제'}
+                                                </button>
+                                                <button 
+                                                    className="btn btn-danger" 
+                                                    onClick={async () => {
+                                                        const confirmed = await showCustomPopup(
+                                                            '퀴즈를 중단하고 처음부터 다시 시작하시겠습니까?', 
+                                                            '퀴즈 재시작', 
+                                                            'warning', 
+                                                            true
+                                                        );
+                                                        if (confirmed) {
+                                                            startQuiz(quizMode, quizType);
+                                                        }
+                                                    }}
+                                                >
+                                                    🔄 재시작
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+
+                            {currentTab === 'words' && (
+                                <div className="card fade-in">
+                                    <h2 style={{ marginBottom: '2rem', color: '#2c3e50' }}>
+                                        📚 {setNames[currentSetId]} ({Object.keys(words).length}개 단어)
+                                    </h2>
+                                    <div style={{ 
+                                        fontSize: '0.9rem', 
+                                        color: '#27ae60', 
+                                        marginBottom: '1rem', 
+                                        padding: '0.8rem',
+                                        backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                                        borderRadius: '8px',
+                                        border: '1px solid rgba(46, 204, 113, 0.3)'
+                                    }}>
+                                        💾 현재 '{setNames[currentSetId]}' 단어장이 선택되어 있습니다. 모든 세트는 브라우저에 자동 저장됩니다!
+                                    </div>
+                                    
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        marginBottom: '1rem',
+                                        padding: '0.5rem',
+                                        background: 'rgba(52, 152, 219, 0.1)',
+                                        borderRadius: '8px',
+                                        border: '1px solid rgba(52, 152, 219, 0.3)'
+                                    }}>
+                                        <div style={{ fontSize: '0.9rem', color: '#2c3e50' }}>
+                                            📊 전체 세트: {Object.keys(setNames).length}개 | 
+                                            전체 단어: {Object.values(wordSets).reduce((total, set) => total + Object.keys(set).length, 0)}개 |
+                                            표시된 단어: {Object.keys(getCurrentSetFavorites()).length}개
+                                        </div>
+                                        <button
+                                            className="btn"
+                                            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                                            style={{
+                                                padding: '0.3rem 0.8rem',
+                                                fontSize: '0.8rem',
+                                                background: showFavoritesOnly ? 'linear-gradient(45deg, #f39c12, #e67e22)' : 'linear-gradient(45deg, #bdc3c7, #95a5a6)',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '6px'
+                                            }}
+                                            title={showFavoritesOnly ? "모든 단어 보기" : "표시된 단어만 보기"}
+                                        >
+                                            {showFavoritesOnly ? '📋 전체 보기' : '⭐ 표시만 보기'}
+                                        </button>
+                                    </div>
+                                    <div className="word-list">
+                                        {Object.entries(getFilteredWords()).map(([hiragana, data]) => {
+                                            const isFavorite = getCurrentSetFavorites()[hiragana];
+                                            return (
+                                                <div key={hiragana} className="word-item slide-in" style={{
+                                                    border: isFavorite ? '2px solid #f39c12' : '1px solid #e1e8ed',
+                                                    backgroundColor: isFavorite ? 'rgba(241, 196, 15, 0.05)' : 'transparent'
+                                                }}>
+                                                    <div>
+                                                        <strong style={{ color: isFavorite ? '#f39c12' : 'inherit' }}>
+                                                            {isFavorite ? '⭐ ' : ''}{hiragana}
+                                                        </strong>
+                                                        {data.kanji && <span> ({data.kanji})</span>}
+                                                        <span> - {data.korean}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                        <button 
+                                                            className="btn"
+                                                            style={{ 
+                                                                padding: '0.5rem 1rem', 
+                                                                fontSize: '0.9rem',
+                                                                background: isFavorite ? 'linear-gradient(45deg, #f39c12, #e67e22)' : 'linear-gradient(45deg, #bdc3c7, #95a5a6)',
+                                                                color: 'white'
+                                                            }}
+                                                            onClick={() => toggleWordFavorite(hiragana)}
+                                                            title={isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+                                                        >
+                                                            {isFavorite ? '⭐ 표시됨' : '☆ 표시'}
+                                                        </button>
+                                                        <button 
+                                                            className="btn btn-primary"
+                                                            style={{ 
+                                                                padding: '0.5rem 1rem', 
+                                                                fontSize: '0.9rem',
+                                                                background: 'linear-gradient(45deg, #3498db, #2980b9)'
+                                                            }}
+                                                            onClick={() => startEditWord(hiragana)}
+                                                            title="단어 수정하기"
+                                                        >
+                                                            ✏️ 수정
+                                                        </button>
+                                                        <button 
+                                                            className="btn btn-danger"
+                                                            style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}
+                                                            onClick={async () => await deleteWord(hiragana)}
+                                                            title="클릭하면 확인 팝업이 나타납니다"
+                                                        >
+                                                            🗑️ 삭제
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {currentTab === 'add' && (
+                                <div className="card fade-in">
+                                    <h2 style={{ marginBottom: '2rem', color: '#2c3e50' }}>
+                                        {isEditMode ? `📝 단어 수정: ${editingWordKey}` : '➕ 새 단어 추가'}
+                                    </h2>
+                                    
+                                    {isEditMode && (
+                                        <div style={{
+                                            background: 'rgba(241, 196, 15, 0.1)',
+                                            border: '2px solid rgba(241, 196, 15, 0.3)',
+                                            borderRadius: '12px',
+                                            padding: '1rem',
+                                            marginBottom: '2rem'
+                                        }}>
+                                            <div style={{ color: '#f39c12', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                                                🔄 수정 모드 활성화
+                                            </div>
+                                            <div style={{ color: '#2c3e50', fontSize: '0.9rem', marginBottom: '1rem' }}>
+                                                '{editingWordKey}' 단어를 수정하고 있습니다. 모든 필드를 자유롭게 변경할 수 있습니다.
+                                            </div>
+                                            <button 
+                                                className="btn btn-secondary"
+                                                onClick={cancelEdit}
+                                                style={{ 
+                                                    padding: '0.5rem 1rem', 
+                                                    fontSize: '0.9rem',
+                                                    background: '#95a5a6'
+                                                }}
+                                            >
+                                                ❌ 수정 취소
+                                            </button>
+                                        </div>
+                                    )}
+                                    
+                                    <div className="hangul-converter">
+                                        <div className="input-group">
+                                            <label className="input-label">한글 발음 (자동변환):</label>
+                                            <input
+                                                type="text"
+                                                className="input-field"
+                                                value={hangulInput}
+                                                onChange={(e) => setHangulInput(e.target.value)}
+                                                placeholder="예: 갓코우, 센세이, 갸쿠"
+                                            />
+                                            <div style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.5rem' }}>
+                                                💡 복잡한 발음도 지원: "갓" (つ), "샤" (しゃ), "큐" (きゅ) 등
+                                            </div>
+                                        </div>
+                                        {convertedHiragana && (
+                                            <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: 'rgba(52, 152, 219, 0.1)', borderRadius: '8px' }}>
+                                                <div style={{ color: '#3498db', fontWeight: 'bold', fontSize: '1.2rem' }}>
+                                                    🎌 변환 결과: {convertedHiragana}
+                                                </div>
+                                                <button 
+                                                    className="btn btn-primary" 
+                                                    style={{ marginTop: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.9rem' }}
+                                                    onClick={useConvertedWord}
+                                                >
+                                                    ✨ 히라가나 란에 적용
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="input-group">
+                                        <label className="input-label">히라가나/가타카나:</label>
+                                        <input
+                                            type="text"
+                                            className="input-field"
+                                            value={newHiragana}
+                                            onChange={(e) => setNewHiragana(e.target.value)}
+                                            placeholder="예: がっこう (입력하면 자동으로 API에서 한자 검색)"
+                                        />
+                                    </div>
+
+                                    <div className="input-group">
+                                        <label className="input-label">한자 (🌐 API 자동검색):</label>
+                                        <input
+                                            type="text"
+                                            className="input-field"
+                                            value={newKanji}
+                                            onChange={(e) => setNewKanji(e.target.value)}
+                                            placeholder="예: 学校"
+                                        />
+                                        {kanjiStatus && (
+                                            <div className={`status-indicator ${kanjiStatus.includes('✅') || kanjiStatus.includes('🔍') ? 'status-success' : 'status-error'}`}>
+                                                {kanjiStatus}
+                                            </div>
+                                        )}
+                                        
+                                        {/* 한자 후보 목록 */}
+                                        {kanjiCandidates.length > 0 && (
+                                            <div style={{ 
+                                                marginTop: '1rem', 
+                                                border: '2px solid #3498db', 
+                                                borderRadius: '8px', 
+                                                padding: '1rem',
+                                                backgroundColor: 'rgba(52, 152, 219, 0.05)'
+                                            }}>
+                                                <div style={{ marginBottom: '0.5rem', fontWeight: 'bold', color: '#2c3e50' }}>
+                                                    🎯 한자 후보 목록 (클릭해서 선택):
+                                                </div>
+                                                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                                    {kanjiCandidates.map((candidate, index) => (
+                                                        <div 
+                                                            key={index}
+                                                            onClick={() => selectKanjiCandidate(candidate)}
+                                                            style={{
+                                                                padding: '0.8rem',
+                                                                border: '1px solid #bdc3c7',
+                                                                borderRadius: '6px',
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s ease',
+                                                                backgroundColor: newKanji === candidate.kanji ? 'rgba(46, 204, 113, 0.1)' : 'white'
+                                                            }}
+                                                            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(52, 152, 219, 0.1)'}
+                                                            onMouseLeave={(e) => e.target.style.backgroundColor = newKanji === candidate.kanji ? 'rgba(46, 204, 113, 0.1)' : 'white'}
+                                                        >
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                <div>
+                                                                    <span style={{ fontSize: '1.4rem', fontWeight: 'bold', marginRight: '0.5rem' }}>
+                                                                        {candidate.kanji}
+                                                                    </span>
+                                                                    <span style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>
+                                                                        ({candidate.reading})
+                                                                    </span>
+                                                                </div>
+                                                                {candidate.meanings && (
+                                                                    <div style={{ fontSize: '0.9rem', color: '#34495e', textAlign: 'right', maxWidth: '200px' }}>
+                                                                        {candidate.meanings}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.5rem' }}>
+                                            🌐 Jisho.org API를 통해 실시간 한자 검색
+                                        </div>
+                                    </div>
+
+                                    <div className="input-group">
+                                        <label className="input-label">한국어 뜻:</label>
+                                        <input
+                                            type="text"
+                                            className="input-field"
+                                            value={newKorean}
+                                            onChange={(e) => setNewKorean(e.target.value)}
+                                            placeholder="예: 학교"
+                                        />
+                                    </div>
+
+                                    <div className="btn-group">
+                                        <button className="btn btn-success" onClick={async () => await addNewWord()}>
+                                            {isEditMode ? '✅ 수정 완료' : '➕ 단어 추가'}
+                                        </button>
+                                        
+                                        {/* 커스텀 팝업 테스트 버튼 */}
+                                        <button 
+                                            className="btn btn-warning" 
+                                            onClick={async () => {
+                                                console.log('테스트 버튼 클릭');
+                                                await showCustomPopup('🧪 이것은 커스텀 팝업 테스트입니다!\n\n브라우저 기본 alert 대신 이 예쁜 팝업이 표시됩니다! ✨', '커스텀 팝업 테스트', 'info');
+                                            }}
+                                        >
+                                            🎨 커스텀 팝업 테스트
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {currentTab === 'data' && (
+                                <div className="card fade-in">
+                                    <h2 style={{ marginBottom: '2rem', color: '#2c3e50' }}>💾 데이터 관리</h2>
+                                    
+                                    {/* 내보내기/가져오기 섹션 */}
+                                    <div style={{ marginBottom: '3rem' }}>
+                                        <h3 style={{ 
+                                            color: '#34495e', 
+                                            marginBottom: '1.5rem',
+                                            borderBottom: '2px solid #3498db',
+                                            paddingBottom: '0.5rem'
+                                        }}>📁 파일 내보내기/가져오기</h3>
+                                        
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+                                            {/* JSON 내보내기/가져오기 */}
+                                            <div style={{
+                                                background: 'rgba(52, 152, 219, 0.1)',
+                                                padding: '1.5rem',
+                                                borderRadius: '12px',
+                                                border: '1px solid rgba(52, 152, 219, 0.3)'
+                                            }}>
+                                                <h4 style={{ color: '#3498db', marginBottom: '1rem' }}>🗂️ JSON 형식</h4>
+                                                <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
+                                                    모든 단어장 세트와 설정을 완전히 백업/복원합니다. 다른 기기로 완전히 이전할 때 권장합니다.
+                                                </p>
+                                                <div className="btn-group">
+                                                    <button className="btn btn-primary" onClick={exportToJSON}>
+                                                        📥 JSON 내보내기
+                                                    </button>
+                                                    <label className="btn btn-success" style={{ cursor: 'pointer' }}>
+                                                        📤 JSON 가져오기
+                                                        <input
+                                                            type="file"
+                                                            accept=".json"
+                                                            onChange={importFromJSON}
+                                                            style={{ display: 'none' }}
+                                                        />
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            {/* CSV 내보내기/가져오기 */}
+                                            <div style={{
+                                                background: 'rgba(46, 204, 113, 0.1)',
+                                                padding: '1.5rem',
+                                                borderRadius: '12px',
+                                                border: '1px solid rgba(46, 204, 113, 0.3)'
+                                            }}>
+                                                <h4 style={{ color: '#2ecc71', marginBottom: '1rem' }}>📊 CSV 형식</h4>
+                                                <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
+                                                    엑셀, 구글 스프레드시트 등에서 편집 가능한 형식입니다. 대량 편집이 필요할 때 유용합니다.
+                                                </p>
+                                                <div className="btn-group">
+                                                    <button className="btn btn-success" onClick={exportToCSV}>
+                                                        📥 CSV 내보내기
+                                                    </button>
+                                                    <label className="btn btn-warning" style={{ cursor: 'pointer' }}>
+                                                        📤 CSV 가져오기
+                                                        <input
+                                                            type="file"
+                                                            accept=".csv"
+                                                            onChange={importFromCSV}
+                                                            style={{ display: 'none' }}
+                                                        />
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* 백업/복원 섹션 */}
+                                    <div style={{ marginBottom: '3rem' }}>
+                                        <h3 style={{ 
+                                            color: '#34495e', 
+                                            marginBottom: '1.5rem',
+                                            borderBottom: '2px solid #e67e22',
+                                            paddingBottom: '0.5rem'
+                                        }}>🔄 백업 및 복원</h3>
+                                        
+                                        <div style={{
+                                            background: 'rgba(230, 126, 34, 0.1)',
+                                            padding: '1.5rem',
+                                            borderRadius: '12px',
+                                            border: '1px solid rgba(230, 126, 34, 0.3)',
+                                            marginBottom: '1rem'
+                                        }}>
+                                            <h4 style={{ color: '#e67e22', marginBottom: '1rem' }}>⚡ 자동 백업</h4>
+                                            <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
+                                                데이터를 가져오거나 삭제할 때 자동으로 백업이 생성됩니다. 백업은 브라우저에 저장되며 언제든지 복원할 수 있습니다.
+                                            </p>
+                                            <button className="btn btn-warning" onClick={restoreBackup}>
+                                                🔙 마지막 백업 복원
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* 데이터 정보 섹션 */}
+                                    <div style={{ marginBottom: '3rem' }}>
+                                        <h3 style={{ 
+                                            color: '#34495e', 
+                                            marginBottom: '1.5rem',
+                                            borderBottom: '2px solid #9b59b6',
+                                            paddingBottom: '0.5rem'
+                                        }}>📊 현재 데이터 정보</h3>
+                                        
+                                        <div style={{
+                                            background: 'rgba(155, 89, 182, 0.1)',
+                                            padding: '1.5rem',
+                                            borderRadius: '12px',
+                                            border: '1px solid rgba(155, 89, 182, 0.3)'
+                                        }}>
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                                                <div>
+                                                    <h4 style={{ color: '#9b59b6' }}>📚 단어장 세트</h4>
+                                                    <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#2c3e50' }}>
+                                                        {Object.keys(wordSets).length}개
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <h4 style={{ color: '#9b59b6' }}>📝 총 단어 수</h4>
+                                                    <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#2c3e50' }}>
+                                                        {Object.values(wordSets).reduce((total, set) => total + Object.keys(set).length, 0)}개
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <h4 style={{ color: '#9b59b6' }}>⭐ 표시된 단어</h4>
+                                                    <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#2c3e50' }}>
+                                                        {Object.values(wordSets).reduce((total, set) => 
+                                                            total + Object.values(set).filter(word => word.favorite).length, 0
+                                                        )}개
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <h4 style={{ color: '#9b59b6' }}>📖 현재 세트</h4>
+                                                    <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#2c3e50' }}>
+                                                        {setNames[currentSetId]}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* 위험한 작업 섹션 */}
+                                    <div>
+                                        <h3 style={{ 
+                                            color: '#e74c3c', 
+                                            marginBottom: '1.5rem',
+                                            borderBottom: '2px solid #e74c3c',
+                                            paddingBottom: '0.5rem'
+                                        }}>⚠️ 위험한 작업</h3>
+                                        
+                                        <div style={{
+                                            background: 'rgba(231, 76, 60, 0.1)',
+                                            padding: '1.5rem',
+                                            borderRadius: '12px',
+                                            border: '1px solid rgba(231, 76, 60, 0.3)'
+                                        }}>
+                                            <h4 style={{ color: '#e74c3c', marginBottom: '1rem' }}>🗑️ 전체 데이터 삭제</h4>
+                                            <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
+                                                모든 단어장, 세트, 설정을 완전히 삭제합니다. 삭제하기 전에 반드시 백업을 만드세요!
+                                            </p>
+                                            <button 
+                                                className="btn btn-danger" 
+                                                onClick={clearAllData}
+                                                style={{ 
+                                                    background: '#e74c3c',
+                                                    border: '2px solid #c0392b'
+                                                }}
+                                            >
+                                                ⚠️ 모든 데이터 삭제
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* 도움말 섹션 */}
+                                    <div style={{ 
+                                        marginTop: '3rem',
+                                        background: 'rgba(52, 73, 94, 0.1)',
+                                        padding: '1.5rem',
+                                        borderRadius: '12px',
+                                        border: '1px solid rgba(52, 73, 94, 0.3)'
+                                    }}>
+                                        <h4 style={{ color: '#34495e', marginBottom: '1rem' }}>💡 사용 팁</h4>
+                                        <ul style={{ color: '#666', paddingLeft: '1.5rem' }}>
+                                            <li>정기적으로 JSON 백업을 만들어 다른 곳에 저장하세요</li>
+                                            <li>CSV 형식은 Excel에서 단어를 대량 편집한 후 다시 가져올 때 유용합니다</li>
+                                            <li>브라우저 데이터를 삭제하기 전에 반드시 백업을 만드세요</li>
+                                            <li>다른 기기에서 사용하려면 JSON 파일을 내보낸 후 새 기기에서 가져오세요</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<JapaneseStudyApp />);
+    </script>
+    
+    <!-- PWA 서비스 워커 등록 -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker 등록 성공: ', registration.scope);
+                    }, function(err) {
+                        console.log('ServiceWorker 등록 실패: ', err);
+                    });
+            });
+        }
+        
+        // PWA 설치 프롬프트
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('PWA 설치 가능!');
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // 설치 안내 표시 (3초 후)
+            setTimeout(() => {
+                if (confirm('📱 이 앱을 홈 화면에 설치하시겠습니까?\n\n설치하면 더 빠르고 편리하게 사용할 수 있어요!')) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('사용자가 PWA 설치를 허용했습니다');
+                        } else {
+                            console.log('사용자가 PWA 설치를 거부했습니다');
+                        }
+                        deferredPrompt = null;
+                    });
+                }
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
