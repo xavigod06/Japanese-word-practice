@@ -1031,44 +1031,76 @@
                             setWords(parsedSets[savedCurrentSet]);
                         }
                         console.log('저장된 단어장 세트들을 불러왔습니다:', Object.keys(parsedSets).length + '개 세트');
+                        
+                        // 전체 단어장 생성
+                        setTimeout(() => updateCombinedWordSet(), 100);
                     } catch (error) {
                         console.error('저장된 세트 로드 실패:', error);
-                        // 기본 단어 세트 생성
-                        createDefaultWordSet();
+                        // 기본 빈 상태로 초기화
+                        setWordSets({});
+                        setSetNames({});
+                        setWords({});
+                        setCurrentSetId('');
                     }
                 } else {
-                    // 기본 단어 세트 생성
-                    createDefaultWordSet();
+                    // 기본 빈 상태로 초기화
+                    setWordSets({});
+                    setSetNames({});
+                    setWords({});
+                    setCurrentSetId('');
                 }
             };
 
-            // 기본 단어 세트 생성
-            const createDefaultWordSet = () => {
-                const defaultWords = {
-                    "がっこう": { kanji: "学校", hiragana: "がっこう", korean: "학교" },
-                    "せんせい": { kanji: "先生", hiragana: "せんせい", korean: "선생님" },
-                    "がくせい": { kanji: "学生", hiragana: "がくせい", korean: "학생" },
-                    "たべもの": { kanji: "食べ物", hiragana: "たべもの", korean: "음식" },
-                    "みず": { kanji: "水", hiragana: "みず", korean: "물" },
-                    "じかん": { kanji: "時間", hiragana: "じかん", korean: "시간" },
-                    "ともだち": { kanji: "友達", hiragana: "ともだち", korean: "친구" },
-                    "でんしゃ": { kanji: "電車", hiragana: "でんしゃ", korean: "전차" },
-                    "びょういん": { kanji: "病院", hiragana: "びょういん", korean: "병원" },
-                    "こうえん": { kanji: "公園", hiragana: "こうえん", korean: "공원" }
-                };
-                
-                const initialSets = { default: defaultWords };
-                const initialNames = { default: '일본어 단어장' };
-                
-                setWordSets(initialSets);
-                setSetNames(initialNames);
-                setWords(defaultWords);
-                setCurrentSetId('default');
-                
-                saveAllSets(initialSets, initialNames, 'default');
-                console.log('기본 단어장이 생성되었습니다.');
-            };
 
+            // 모든 단어장의 단어를 합친 전체 단어장 생성/업데이트
+            const updateCombinedWordSet = () => {
+                if (Object.keys(wordSets).length === 0) return;
+                
+                // 'combined' 세트가 아닌 모든 세트의 단어를 합침
+                let combinedWords = {};
+                Object.entries(wordSets).forEach(([setId, setWords]) => {
+                    if (setId !== 'combined') {
+                        Object.assign(combinedWords, setWords);
+                    }
+                });
+                
+                // 합친 단어가 있으면 'combined' 세트 생성/업데이트
+                if (Object.keys(combinedWords).length > 0) {
+                    const updatedSets = { ...wordSets, combined: combinedWords };
+                    const updatedNames = { ...setNames, combined: '전체 단어장' };
+                    
+                    setWordSets(updatedSets);
+                    setSetNames(updatedNames);
+                    
+                    // 현재 세트가 비어있으면 combined로 설정
+                    if (!currentSetId || !updatedSets[currentSetId]) {
+                        setCurrentSetId('combined');
+                        setWords(combinedWords);
+                    }
+                    
+                    saveAllSets(updatedSets, updatedNames, currentSetId || 'combined');
+                    console.log('전체 단어장이 업데이트되었습니다:', Object.keys(combinedWords).length + '개 단어');
+                } else if (wordSets['combined']) {
+                    // 다른 단어장이 모두 삭제되었으면 combined도 삭제
+                    const updatedSets = { ...wordSets };
+                    const updatedNames = { ...setNames };
+                    delete updatedSets['combined'];
+                    delete updatedNames['combined'];
+                    
+                    setWordSets(updatedSets);
+                    setSetNames(updatedNames);
+                    
+                    if (currentSetId === 'combined') {
+                        const remainingSetIds = Object.keys(updatedSets);
+                        const newCurrentSet = remainingSetIds.length > 0 ? remainingSetIds[0] : '';
+                        setCurrentSetId(newCurrentSet);
+                        setWords(newCurrentSet ? updatedSets[newCurrentSet] : {});
+                    }
+                    
+                    saveAllSets(updatedSets, updatedNames, currentSetId !== 'combined' ? currentSetId : '');
+                }
+            };
+            
             // 모든 세트 데이터 저장
             const saveAllSets = (sets, names, currentSet) => {
                 localStorage.setItem('japaneseWordSets', JSON.stringify(sets));
@@ -1143,9 +1175,9 @@
                 return filteredWords;
             };
 
-            // 현재 세트의 단어가 변경될 때마다 저장
+            // 현재 세트의 단어가 변경될 때마다 저장 및 전체 단어장 업데이트
             useEffect(() => {
-                if (Object.keys(words).length > 0 && wordSets[currentSetId]) {
+                if (Object.keys(words).length > 0 && wordSets[currentSetId] && currentSetId !== 'combined') {
                     const updatedSets = {
                         ...wordSets,
                         [currentSetId]: words
@@ -1155,6 +1187,11 @@
                     console.log(`'${setNames[currentSetId]}' 세트가 자동 저장되었습니다:`, Object.keys(words).length + '개 단어');
                 }
             }, [words]);
+            
+            // wordSets가 변경될 때마다 전체 단어장 업데이트
+            useEffect(() => {
+                updateCombinedWordSet();
+            }, [wordSets, setNames, currentSetId]);
 
             // 히라가나 입력 시 한자 자동 검색 (API 사용)
             useEffect(() => {
@@ -1471,6 +1508,10 @@
             };
 
             const deleteSet = async (setId) => {
+                if (setId === 'combined') {
+                    showAlert('전체 단어장은 삭제할 수 없습니다. (자동 생성되는 단어장입니다)', 'warning');
+                    return;
+                }
 
                 const confirmed = await showCustomPopup(
                     `정말로 '${setNames[setId]}' 단어장을 삭제하시겠습니까?\n\n삭제된 단어장은 복구할 수 없습니다.`,
@@ -1697,8 +1738,11 @@
                     localStorage.removeItem('japaneseSetNames');
                     localStorage.removeItem('currentWordSet');
                     
-                    // 기본 단어 세트 생성
-                    createDefaultWordSet();
+                    // 기본 빈 상태로 초기화
+                    setWordSets({});
+                    setSetNames({});
+                    setWords({});
+                    setCurrentSetId('');
                     showAlert('🗑️ 모든 데이터가 삭제되었습니다. (백업 저장됨)', 'info');
                 }
             };
