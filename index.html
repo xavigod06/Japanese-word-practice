@@ -982,7 +982,7 @@
             // 즐겨찾기/표시 관련 상태
             const [favoriteWords, setFavoriteWords] = useState({}); // 세트별 즐겨찾기 단어들
             const [showFavoritesOnly, setShowFavoritesOnly] = useState(false); // 즐겨찾기만 표시
-            const [quizMode, setQuizMode] = useState('all'); // 'all' | 'favorites'
+            const [quizMode, setQuizMode] = useState('all'); // 'all' | 'favorites' | 'all_sets'
             const [quizType, setQuizType] = useState('korean'); // 'korean' | 'hiragana' | 'both'
             const [convertedQuizAnswer, setConvertedQuizAnswer] = useState(''); // 히라가나 퀴즈용 변환된 답안
             
@@ -993,7 +993,7 @@
             const [bothQuizResult, setBothQuizResult] = useState({ korean: null, hiragana: null }); // 각각의 정답 여부
             
             // 퀴즈 선택 UI 상태
-            const [selectedRange, setSelectedRange] = useState('all'); // 'all' | 'favorites'
+            const [selectedRange, setSelectedRange] = useState('all'); // 'all' | 'favorites' | 'all_sets'
             const [selectedType, setSelectedType] = useState('korean'); // 'korean' | 'hiragana' | 'both' | 'japanese'
             
             // 퀴즈 진행 상태
@@ -1033,39 +1033,21 @@
                         console.log('저장된 단어장 세트들을 불러왔습니다:', Object.keys(parsedSets).length + '개 세트');
                     } catch (error) {
                         console.error('저장된 세트 로드 실패:', error);
-                        createDefaultSet();
+                        // 기본 빈 상태로 초기화
+                        setWordSets({});
+                        setSetNames({});
+                        setWords({});
+                        setCurrentSetId('');
                     }
                 } else {
-                    createDefaultSet();
+                    // 기본 빈 상태로 초기화
+                    setWordSets({});
+                    setSetNames({});
+                    setWords({});
+                    setCurrentSetId('');
                 }
             };
 
-            // 기본 세트 생성
-            const createDefaultSet = () => {
-                const defaultWords = {
-                    "がっこう": { kanji: "学校", hiragana: "がっこう", korean: "학교" },
-                    "せんせい": { kanji: "先生", hiragana: "せんせい", korean: "선생님" },
-                    "がくせい": { kanji: "学生", hiragana: "がくせい", korean: "학생" },
-                    "たべもの": { kanji: "食べ物", hiragana: "たべもの", korean: "음식" },
-                    "みず": { kanji: "水", hiragana: "みず", korean: "물" },
-                    "じかん": { kanji: "時間", hiragana: "じかん", korean: "시간" },
-                    "ともだち": { kanji: "友達", hiragana: "ともだち", korean: "친구" },
-                    "でんしゃ": { kanji: "電車", hiragana: "でんしゃ", korean: "전차" },
-                    "びょういん": { kanji: "病院", hiragana: "びょういん", korean: "병원" },
-                    "こうえん": { kanji: "公園", hiragana: "こうえん", korean: "공원" }
-                };
-                
-                const initialSets = { default: defaultWords };
-                const initialNames = { default: '기본 단어장' };
-                
-                setWordSets(initialSets);
-                setSetNames(initialNames);
-                setWords(defaultWords);
-                setCurrentSetId('default');
-                
-                saveAllSets(initialSets, initialNames, 'default');
-                console.log('기본 단어장이 생성되었습니다.');
-            };
 
             // 모든 세트 데이터 저장
             const saveAllSets = (sets, names, currentSet) => {
@@ -1469,10 +1451,6 @@
             };
 
             const deleteSet = async (setId) => {
-                if (setId === 'default') {
-                    showAlert('기본 단어장은 삭제할 수 없습니다.', 'warning');
-                    return;
-                }
 
                 const confirmed = await showCustomPopup(
                     `정말로 '${setNames[setId]}' 단어장을 삭제하시겠습니까?\n\n삭제된 단어장은 복구할 수 없습니다.`,
@@ -1487,14 +1465,18 @@
                     delete updatedSets[setId];
                     delete updatedNames[setId];
 
-                    // 현재 세트가 삭제되는 경우 기본 세트로 전환
-                    const newCurrentSet = setId === currentSetId ? 'default' : currentSetId;
+                    // 현재 세트가 삭제되는 경우 다른 세트로 전환
+                    let newCurrentSet = currentSetId;
+                    if (setId === currentSetId) {
+                        const remainingSetIds = Object.keys(updatedSets);
+                        newCurrentSet = remainingSetIds.length > 0 ? remainingSetIds[0] : '';
+                    }
                     
                     setWordSets(updatedSets);
                     setSetNames(updatedNames);
                     if (newCurrentSet !== currentSetId) {
                         setCurrentSetId(newCurrentSet);
-                        setWords(updatedSets[newCurrentSet]);
+                        setWords(newCurrentSet ? updatedSets[newCurrentSet] : {});
                     }
                     
                     saveAllSets(updatedSets, updatedNames, newCurrentSet);
@@ -1695,8 +1677,11 @@
                     localStorage.removeItem('japaneseSetNames');
                     localStorage.removeItem('currentWordSet');
                     
-                    // 기본 상태로 초기화
-                    createDefaultSet();
+                    // 기본 빈 상태로 초기화
+                    setWordSets({});
+                    setSetNames({});
+                    setWords({});
+                    setCurrentSetId('');
                     showAlert('🗑️ 모든 데이터가 삭제되었습니다. (백업 저장됨)', 'info');
                 }
             };
@@ -1804,7 +1789,7 @@
                 setConvertedHiraganaAnswer('');
                 setBothQuizResult({ korean: null, hiragana: null });
                 
-                const modeText = mode === 'favorites' ? '표시된 단어만' : '전체 단어';
+                const modeText = mode === 'favorites' ? '표시된 단어만' : mode === 'all_sets' ? '모든 세트 단어' : '전체 단어';
                 const typeText = type === 'hiragana' ? '히라가나' : type === 'both' ? '둘 다 맞추기' : type === 'japanese' ? '일본어로 쓰기' : '한국어';
                 showAlert(`${modeText} ${typeText} 퀴즈 시작! 화이팅! 🎌`, 'info');
                 nextQuestion();
@@ -1820,6 +1805,11 @@
                         if (currentFavorites[wordKey]) {
                             targetWords[wordKey] = words[wordKey];
                         }
+                    });
+                } else if (quizMode === 'all_sets') {
+                    // 모든 세트의 모든 단어를 포함
+                    Object.values(wordSets).forEach(setWords => {
+                        Object.assign(targetWords, setWords);
                     });
                 } else {
                     targetWords = words;
@@ -1860,7 +1850,7 @@
                         setQuizCompleted(true);
                         setCurrentWord(null);
                         const accuracy = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
-                        const modeText = quizMode === 'favorites' ? '표시된 단어' : '전체 단어';
+                        const modeText = quizMode === 'favorites' ? '표시된 단어' : quizMode === 'all_sets' ? '모든 세트 단어' : '전체 단어';
                         const typeText = quizType === 'hiragana' ? '히라가나' : quizType === 'both' ? '둘 다 맞추기' : quizType === 'japanese' ? '일본어로 쓰기' : '한국어';
                         const scoreDisplay = quizType === 'both' ? `${score}점` : `${score}문제 정답`;
                         showCustomPopup(
@@ -2336,7 +2326,7 @@
                                         {quizStarted && !quizCompleted && (
                                             <>
                                                 <div style={{ fontSize: '0.9rem', color: '#7f8c8d', marginTop: '0.5rem' }}>
-                                                    {quizMode === 'favorites' ? '⭐ 표시된 단어' : '📚 전체 단어'} {quizType === 'hiragana' ? '🈶 히라가나' : quizType === 'both' ? '💯 둘 다 맞추기' : quizType === 'japanese' ? '🗾 일본어로 쓰기' : '🇰🇷 한국어'} - 
+                                                    {quizMode === 'favorites' ? '⭐ 표시된 단어' : quizMode === 'all_sets' ? '🌐 모든 세트' : '📚 전체 단어'} {quizType === 'hiragana' ? '🈶 히라가나' : quizType === 'both' ? '💯 둘 다 맞추기' : quizType === 'japanese' ? '🗾 일본어로 쓰기' : '🇰🇷 한국어'} - 
                                                     진행률: {usedWords.size}/{Object.keys(getQuizTargetWords()).length} 문제 완료
                                                 </div>
                                                 {currentWord && words[currentWord].kanji && words[currentWord].kanji !== currentWord && (
@@ -2352,7 +2342,7 @@
                                         <div style={{ textAlign: 'center' }}>
                                             <h2 style={{ marginBottom: '2rem', color: '#2c3e50' }}>
                                                 {quizCompleted ? 
-                                                    `🎉 ${quizMode === 'favorites' ? '표시된 단어' : '전체 단어'} ${quizType === 'hiragana' ? '히라가나' : quizType === 'both' ? '둘 다 맞추기' : quizType === 'japanese' ? '일본어로 쓰기' : '한국어'} 퀴즈 완료! 다시 도전해보세요!` : 
+                                                    `🎉 ${quizMode === 'favorites' ? '표시된 단어' : quizMode === 'all_sets' ? '모든 세트 단어' : '전체 단어'} ${quizType === 'hiragana' ? '히라가나' : quizType === 'both' ? '둘 다 맞추기' : quizType === 'japanese' ? '일본어로 쓰기' : '한국어'} 퀴즈 완료! 다시 도전해보세요!` : 
                                                     '일본어 단어 퀴즈를 시작해보세요! 🎌'
                                                 }
                                             </h2>
@@ -2376,6 +2366,21 @@
                                                             }}
                                                         >
                                                             📚 전체 단어 ({Object.keys(words).length}개)
+                                                        </button>
+                                                        <button 
+                                                            className={`btn ${selectedRange === 'all_sets' ? 'btn-primary' : 'btn-secondary'}`}
+                                                            onClick={() => setSelectedRange('all_sets')}
+                                                            style={{ 
+                                                                minWidth: '180px',
+                                                                background: selectedRange === 'all_sets' ? '#3498db' : '#bdc3c7',
+                                                                border: 'none',
+                                                                borderRadius: '8px',
+                                                                padding: '0.8rem 1.2rem',
+                                                                fontWeight: '600',
+                                                                transition: 'all 0.2s ease'
+                                                            }}
+                                                        >
+                                                            🌐 모든 세트 ({Object.values(wordSets).reduce((total, set) => total + Object.keys(set).length, 0)}개)
                                                         </button>
                                                         <button 
                                                             className={`btn ${selectedRange === 'favorites' ? 'btn-primary' : 'btn-secondary'}`}
@@ -2420,7 +2425,7 @@
                                                             className={`btn ${selectedType === 'hiragana' ? 'btn-success' : 'btn-secondary'}`}
                                                             onClick={() => setSelectedType('hiragana')}
                                                             disabled={(() => {
-                                                                const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : words;
+                                                                const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : selectedRange === 'all_sets' ? Object.values(wordSets).reduce((all, set) => ({...all, ...set}), {}) : words;
                                                                 return countHiraganaWords(targetWords) === 0;
                                                             })()}
                                                             style={{ 
@@ -2432,7 +2437,7 @@
                                                                 fontWeight: '600',
                                                                 transition: 'all 0.2s ease',
                                                                 opacity: (() => {
-                                                                    const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : words;
+                                                                    const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : selectedRange === 'all_sets' ? Object.values(wordSets).reduce((all, set) => ({...all, ...set}), {}) : words;
                                                                     return countHiraganaWords(targetWords) === 0 ? 0.5 : 1;
                                                                 })()
                                                             }}
@@ -2443,7 +2448,7 @@
                                                             className={`btn ${selectedType === 'both' ? 'btn-success' : 'btn-secondary'}`}
                                                             onClick={() => setSelectedType('both')}
                                                             disabled={(() => {
-                                                                const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : words;
+                                                                const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : selectedRange === 'all_sets' ? Object.values(wordSets).reduce((all, set) => ({...all, ...set}), {}) : words;
                                                                 return countHiraganaWords(targetWords) === 0;
                                                             })()}
                                                             style={{ 
@@ -2455,7 +2460,7 @@
                                                                 fontWeight: '600',
                                                                 transition: 'all 0.2s ease',
                                                                 opacity: (() => {
-                                                                    const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : words;
+                                                                    const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : selectedRange === 'all_sets' ? Object.values(wordSets).reduce((all, set) => ({...all, ...set}), {}) : words;
                                                                     return countHiraganaWords(targetWords) === 0 ? 0.5 : 1;
                                                                 })()
                                                             }}
@@ -2495,11 +2500,14 @@
                                                         }}
                                                         disabled={(() => {
                                                             if (selectedType === 'hiragana' || selectedType === 'both') {
-                                                                const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : words;
+                                                                const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : selectedRange === 'all_sets' ? Object.values(wordSets).reduce((all, set) => ({...all, ...set}), {}) : words;
                                                                 return countHiraganaWords(targetWords) === 0;
                                                             }
                                                             if (selectedRange === 'favorites') {
                                                                 return Object.keys(getCurrentSetFavorites()).length === 0;
+                                                            }
+                                                            if (selectedRange === 'all_sets') {
+                                                                return Object.values(wordSets).reduce((total, set) => total + Object.keys(set).length, 0) === 0;
                                                             }
                                                             return Object.keys(words).length === 0;
                                                         })()}
@@ -2513,7 +2521,7 @@
                                                         onClick={() => {
                                                             const targetWords = getQuizTargetWords();
                                                             const accuracy = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
-                                                            const modeText = quizMode === 'favorites' ? '표시된 단어' : '전체 단어';
+                                                            const modeText = quizMode === 'favorites' ? '표시된 단어' : quizMode === 'all_sets' ? '모든 세트 단어' : '전체 단어';
                                                             const typeText = quizType === 'hiragana' ? '히라가나' : quizType === 'both' ? '둘 다 맞추기' : quizType === 'japanese' ? '일본어로 쓰기' : '한국어';
                                                             const scoreText = quizType === 'both' ? `점수: ${score}점` : `정답수: ${score}개`;
                                                             showCustomPopup(
