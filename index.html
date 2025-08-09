@@ -1847,10 +1847,6 @@
                     return;
                 }
                 
-                // 틀린 문제 퀴즈 데이터 정리
-                window.currentWrongAnswersQuiz = null;
-                window.wrongAnswersQuizMode = null;
-                
                 setQuizMode(mode);
                 setQuizType(type);
                 setQuizStarted(true);
@@ -1885,69 +1881,12 @@
                 }
             };
 
-            // 틀린 문제 전용 퀴즈 시작
-            const startWrongAnswersQuiz = (mode) => {
-                if (!wrongAnswers || wrongAnswers.length === 0) {
-                    showAlert('틀린 문제가 없습니다!', 'warning');
-                    return;
-                }
-                
-                let targetWrongAnswers = wrongAnswers;
-                if (mode === 'starred') {
-                    // 표시된 틀린 문제만 필터링
-                    targetWrongAnswers = wrongAnswers.filter((_, index) => wrongAnswerFavorites[index]);
-                    if (targetWrongAnswers.length === 0) {
-                        showAlert('표시된 틀린 문제가 없습니다!', 'warning');
-                        return;
-                    }
-                }
-                
-                // 틀린 문제를 words 형식으로 변환하여 별도 저장
-                const wrongWordsDict = {};
-                targetWrongAnswers.forEach(wrongItem => {
-                    const key = wrongItem.hiragana || wrongItem.question;
-                    wrongWordsDict[key] = {
-                        korean: wrongItem.korean,
-                        kanji: wrongItem.kanji || wrongItem.answer,
-                        hiragana: wrongItem.hiragana
-                    };
-                });
-                
-                // 퀴즈 설정 (words는 건드리지 않음)
-                setQuizMode('wrong_answers'); // 새로운 모드 추가
-                setQuizType('korean'); // 기본적으로 한국어 퀴즈
-                setQuizStarted(true);
-                setScore(0);
-                setTotalQuestions(0);
-                setUsedWords(new Set());
-                setQuizCompleted(false);
-                setHideHiragana(false);
-                setConvertedQuizAnswer('');
-                setIsLoadingNextQuestion(false);
-                
-                // 틀린 문제 데이터를 임시로 저장
-                window.currentWrongAnswersQuiz = wrongWordsDict;
-                window.wrongAnswersQuizMode = mode;
-                
-                // 둘 다 맞추기 퀴즈 상태 초기화
-                setUserKoreanAnswer('');
-                setUserHiraganaAnswer('');
-                setConvertedHiraganaAnswer('');
-                setBothQuizResult({ korean: null, hiragana: null });
-                
-                const modeText = mode === 'starred' ? '표시된 틀린 문제' : '틀린 문제';
-                showAlert(`${modeText} 다시 풀기 시작! 화이팅! 🔄`, 'info');
-                nextQuestion();
-            };
 
             // 퀴즈 대상 단어 가져오기
             const getQuizTargetWords = () => {
                 let targetWords = {};
                 
-                if (quizMode === 'wrong_answers') {
-                    // 틀린 문제 퀴즈인 경우 별도로 저장된 데이터 사용
-                    targetWords = window.currentWrongAnswersQuiz || {};
-                } else if (quizMode === 'favorites') {
+                if (quizMode === 'favorites') {
                     const currentFavorites = getCurrentSetFavorites();
                     Object.keys(words).forEach(wordKey => {
                         if (currentFavorites[wordKey]) {
@@ -3145,48 +3084,6 @@
                                             {wrongAnswers.length === 0 && (
                                                 <div style={{ textAlign: 'center', color: '#7f8c8d', padding: '2rem' }}>
                                                     틀린 문제가 없습니다! 🎉
-                                                </div>
-                                            )}
-                                            {wrongAnswers.length > 0 && (
-                                                <div style={{ 
-                                                    display: 'flex', 
-                                                    gap: '1rem', 
-                                                    justifyContent: 'center', 
-                                                    marginTop: '2rem',
-                                                    padding: '1rem',
-                                                    backgroundColor: 'rgba(231, 76, 60, 0.05)',
-                                                    borderRadius: '8px',
-                                                    border: '1px solid rgba(231, 76, 60, 0.2)'
-                                                }}>
-                                                    <button
-                                                        className="btn btn-warning"
-                                                        onClick={() => {
-                                                            setCurrentTab('quiz');
-                                                            setShowWrongAnswers(false);
-                                                            // 틀린 문제만으로 퀴즈 시작
-                                                            startWrongAnswersQuiz('all');
-                                                        }}
-                                                        style={{ fontSize: '0.9rem', padding: '0.7rem 1.2rem' }}
-                                                    >
-                                                        🔄 틀린 문제 다시 풀기 ({wrongAnswers.length}개)
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-danger"
-                                                        onClick={() => {
-                                                            const starredCount = Object.keys(wrongAnswerFavorites).filter(key => wrongAnswerFavorites[key]).length;
-                                                            if (starredCount === 0) {
-                                                                showCustomPopup('표시된 틀린 문제가 없습니다. 먼저 틀린 문제에 ⭐ 표시를 해주세요.', '알림', 'info');
-                                                                return;
-                                                            }
-                                                            setCurrentTab('quiz');
-                                                            setShowWrongAnswers(false);
-                                                            // 표시된 틀린 문제만으로 퀴즈 시작
-                                                            startWrongAnswersQuiz('starred');
-                                                        }}
-                                                        style={{ fontSize: '0.9rem', padding: '0.7rem 1.2rem' }}
-                                                    >
-                                                        ⭐ 표시된 틀린 문제 풀기 ({Object.keys(wrongAnswerFavorites).filter(key => wrongAnswerFavorites[key]).length}개)
-                                                    </button>
                                                 </div>
                                             )}
                                         </div>
