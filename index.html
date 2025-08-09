@@ -982,7 +982,7 @@
             // 즐겨찾기/표시 관련 상태
             const [favoriteWords, setFavoriteWords] = useState({}); // 세트별 즐겨찾기 단어들
             const [showFavoritesOnly, setShowFavoritesOnly] = useState(false); // 즐겨찾기만 표시
-            const [quizMode, setQuizMode] = useState('all'); // 'all' | 'favorites' | 'all_sets'
+            const [quizMode, setQuizMode] = useState('all'); // 'all' | 'favorites'
             const [quizType, setQuizType] = useState('korean'); // 'korean' | 'hiragana' | 'both'
             const [convertedQuizAnswer, setConvertedQuizAnswer] = useState(''); // 히라가나 퀴즈용 변환된 답안
             
@@ -993,7 +993,7 @@
             const [bothQuizResult, setBothQuizResult] = useState({ korean: null, hiragana: null }); // 각각의 정답 여부
             
             // 퀴즈 선택 UI 상태
-            const [selectedRange, setSelectedRange] = useState('all'); // 'all' | 'favorites' | 'all_sets'
+            const [selectedRange, setSelectedRange] = useState('all'); // 'all' | 'favorites'
             const [selectedType, setSelectedType] = useState('korean'); // 'korean' | 'hiragana' | 'both' | 'japanese'
             
             // 퀴즈 진행 상태
@@ -1033,21 +1033,41 @@
                         console.log('저장된 단어장 세트들을 불러왔습니다:', Object.keys(parsedSets).length + '개 세트');
                     } catch (error) {
                         console.error('저장된 세트 로드 실패:', error);
-                        // 기본 빈 상태로 초기화
-                        setWordSets({});
-                        setSetNames({});
-                        setWords({});
-                        setCurrentSetId('');
+                        // 기본 단어 세트 생성
+                        createDefaultWordSet();
                     }
                 } else {
-                    // 기본 빈 상태로 초기화
-                    setWordSets({});
-                    setSetNames({});
-                    setWords({});
-                    setCurrentSetId('');
+                    // 기본 단어 세트 생성
+                    createDefaultWordSet();
                 }
             };
 
+            // 기본 단어 세트 생성
+            const createDefaultWordSet = () => {
+                const defaultWords = {
+                    "がっこう": { kanji: "学校", hiragana: "がっこう", korean: "학교" },
+                    "せんせい": { kanji: "先生", hiragana: "せんせい", korean: "선생님" },
+                    "がくせい": { kanji: "学生", hiragana: "がくせい", korean: "학생" },
+                    "たべもの": { kanji: "食べ物", hiragana: "たべもの", korean: "음식" },
+                    "みず": { kanji: "水", hiragana: "みず", korean: "물" },
+                    "じかん": { kanji: "時間", hiragana: "じかん", korean: "시간" },
+                    "ともだち": { kanji: "友達", hiragana: "ともだち", korean: "친구" },
+                    "でんしゃ": { kanji: "電車", hiragana: "でんしゃ", korean: "전차" },
+                    "びょういん": { kanji: "病院", hiragana: "びょういん", korean: "병원" },
+                    "こうえん": { kanji: "公園", hiragana: "こうえん", korean: "공원" }
+                };
+                
+                const initialSets = { default: defaultWords };
+                const initialNames = { default: '일본어 단어장' };
+                
+                setWordSets(initialSets);
+                setSetNames(initialNames);
+                setWords(defaultWords);
+                setCurrentSetId('default');
+                
+                saveAllSets(initialSets, initialNames, 'default');
+                console.log('기본 단어장이 생성되었습니다.');
+            };
 
             // 모든 세트 데이터 저장
             const saveAllSets = (sets, names, currentSet) => {
@@ -1677,11 +1697,8 @@
                     localStorage.removeItem('japaneseSetNames');
                     localStorage.removeItem('currentWordSet');
                     
-                    // 기본 빈 상태로 초기화
-                    setWordSets({});
-                    setSetNames({});
-                    setWords({});
-                    setCurrentSetId('');
+                    // 기본 단어 세트 생성
+                    createDefaultWordSet();
                     showAlert('🗑️ 모든 데이터가 삭제되었습니다. (백업 저장됨)', 'info');
                 }
             };
@@ -1748,7 +1765,18 @@
             };
 
             const startQuiz = (mode = 'all', type = 'korean') => {
-                let targetWords = mode === 'favorites' ? getQuizTargetWords() : words;
+                let targetWords;
+                if (mode === 'favorites') {
+                    const currentFavorites = getCurrentSetFavorites();
+                    targetWords = {};
+                    Object.keys(words).forEach(wordKey => {
+                        if (currentFavorites[wordKey]) {
+                            targetWords[wordKey] = words[wordKey];
+                        }
+                    });
+                } else {
+                    targetWords = words;
+                }
                 
                 // 히라가나 퀴즈나 둘 다 맞추기 퀴즈의 경우 히라가나가 있는 단어만 필터링
                 if (type === 'hiragana' || type === 'both') {
@@ -1767,7 +1795,7 @@
                     } else if (mode === 'favorites') {
                         showAlert('표시된 단어가 없습니다! 먼저 단어장에서 단어를 표시해주세요. ⭐', 'warning');
                     } else {
-                        showAlert('단어장이 비어있습니다! 먼저 단어를 추가해주세요. 📚', 'warning');
+                        showAlert('현재 단어장이 비어있습니다! 먼저 단어를 추가해주세요. 📚', 'warning');
                     }
                     return;
                 }
@@ -1789,7 +1817,7 @@
                 setConvertedHiraganaAnswer('');
                 setBothQuizResult({ korean: null, hiragana: null });
                 
-                const modeText = mode === 'favorites' ? '표시된 단어만' : mode === 'all_sets' ? '모든 세트 단어' : '전체 단어';
+                const modeText = mode === 'favorites' ? '표시된 단어만' : '전체 단어';
                 const typeText = type === 'hiragana' ? '히라가나' : type === 'both' ? '둘 다 맞추기' : type === 'japanese' ? '일본어로 쓰기' : '한국어';
                 showAlert(`${modeText} ${typeText} 퀴즈 시작! 화이팅! 🎌`, 'info');
                 nextQuestion();
@@ -1805,11 +1833,6 @@
                         if (currentFavorites[wordKey]) {
                             targetWords[wordKey] = words[wordKey];
                         }
-                    });
-                } else if (quizMode === 'all_sets') {
-                    // 모든 세트의 모든 단어를 포함
-                    Object.values(wordSets).forEach(setWords => {
-                        Object.assign(targetWords, setWords);
                     });
                 } else {
                     targetWords = words;
@@ -1841,6 +1864,14 @@
                 const targetWords = getQuizTargetWords();
                 const wordKeys = Object.keys(targetWords);
                 
+                // 단어가 없으면 퀴즈를 시작할 수 없음
+                if (wordKeys.length === 0) {
+                    setQuizCompleted(true);
+                    setCurrentWord(null);
+                    setIsLoadingNextQuestion(false);
+                    return;
+                }
+                
                 // 현재 usedWords 상태를 최신으로 가져오기
                 setUsedWords(currentUsedWords => {
                     const availableWords = wordKeys.filter(key => !currentUsedWords.has(key));
@@ -1850,7 +1881,7 @@
                         setQuizCompleted(true);
                         setCurrentWord(null);
                         const accuracy = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
-                        const modeText = quizMode === 'favorites' ? '표시된 단어' : quizMode === 'all_sets' ? '모든 세트 단어' : '전체 단어';
+                        const modeText = quizMode === 'favorites' ? '표시된 단어' : '전체 단어';
                         const typeText = quizType === 'hiragana' ? '히라가나' : quizType === 'both' ? '둘 다 맞추기' : quizType === 'japanese' ? '일본어로 쓰기' : '한국어';
                         const scoreDisplay = quizType === 'both' ? `${score}점` : `${score}문제 정답`;
                         showCustomPopup(
@@ -1917,10 +1948,10 @@
                     typeText = '히라가나';
                 } else if (quizType === 'japanese') {
                     // 일본어 퀴즈: 히라가나 키 또는 한자를 정답으로
-                    correct = words[currentWord].kanji || currentWord;
+                    correct = (words[currentWord] && words[currentWord].kanji) || currentWord;
                     typeText = '일본어';
                 } else {
-                    correct = words[currentWord].korean;
+                    correct = words[currentWord] && words[currentWord].korean;
                     typeText = '한국어';
                 }
                 
@@ -1952,8 +1983,8 @@
                     }
                 } else if (quizType === 'japanese') {
                     // 일본어 퀴즈: 한자와 히라가나 둘 다 정답으로 인정
-                    const hiraganaAnswer = words[currentWord].hiragana || currentWord;
-                    const kanjiAnswer = words[currentWord].kanji;
+                    const hiraganaAnswer = (words[currentWord] && words[currentWord].hiragana) || currentWord;
+                    const kanjiAnswer = words[currentWord] && words[currentWord].kanji;
                     
                     let isCorrect = false;
                     let correctAnswers = [];
@@ -2000,8 +2031,8 @@
             };
 
             const checkBothAnswers = () => {
-                const correctKorean = words[currentWord].korean;
-                const correctHiragana = words[currentWord].hiragana || currentWord;
+                const correctKorean = words[currentWord] && words[currentWord].korean;
+                const correctHiragana = (words[currentWord] && words[currentWord].hiragana) || currentWord;
                 
                 setTotalQuestions(prev => prev + 1);
                 
@@ -2326,10 +2357,10 @@
                                         {quizStarted && !quizCompleted && (
                                             <>
                                                 <div style={{ fontSize: '0.9rem', color: '#7f8c8d', marginTop: '0.5rem' }}>
-                                                    {quizMode === 'favorites' ? '⭐ 표시된 단어' : quizMode === 'all_sets' ? '🌐 모든 세트' : '📚 전체 단어'} {quizType === 'hiragana' ? '🈶 히라가나' : quizType === 'both' ? '💯 둘 다 맞추기' : quizType === 'japanese' ? '🗾 일본어로 쓰기' : '🇰🇷 한국어'} - 
+                                                    {quizMode === 'favorites' ? '⭐ 표시된 단어' : '📚 전체 단어'} {quizType === 'hiragana' ? '🈶 히라가나' : quizType === 'both' ? '💯 둘 다 맞추기' : quizType === 'japanese' ? '🗾 일본어로 쓰기' : '🇰🇷 한국어'} - 
                                                     진행률: {usedWords.size}/{Object.keys(getQuizTargetWords()).length} 문제 완료
                                                 </div>
-                                                {currentWord && words[currentWord].kanji && words[currentWord].kanji !== currentWord && (
+                                                {currentWord && words[currentWord] && words[currentWord].kanji && words[currentWord].kanji !== currentWord && (
                                                     <div style={{ fontSize: '0.8rem', color: '#3498db', marginTop: '0.3rem' }}>
                                                         💡 우측 상단 {hideHiragana ? '👁️' : '🙈'} 버튼으로 히라가나를 가리거나 볼 수 있어요!
                                                     </div>
@@ -2342,7 +2373,7 @@
                                         <div style={{ textAlign: 'center' }}>
                                             <h2 style={{ marginBottom: '2rem', color: '#2c3e50' }}>
                                                 {quizCompleted ? 
-                                                    `🎉 ${quizMode === 'favorites' ? '표시된 단어' : quizMode === 'all_sets' ? '모든 세트 단어' : '전체 단어'} ${quizType === 'hiragana' ? '히라가나' : quizType === 'both' ? '둘 다 맞추기' : quizType === 'japanese' ? '일본어로 쓰기' : '한국어'} 퀴즈 완료! 다시 도전해보세요!` : 
+                                                    `🎉 ${quizMode === 'favorites' ? '표시된 단어' : '전체 단어'} ${quizType === 'hiragana' ? '히라가나' : quizType === 'both' ? '둘 다 맞추기' : quizType === 'japanese' ? '일본어로 쓰기' : '한국어'} 퀴즈 완료! 다시 도전해보세요!` : 
                                                     '일본어 단어 퀴즈를 시작해보세요! 🎌'
                                                 }
                                             </h2>
@@ -2366,21 +2397,6 @@
                                                             }}
                                                         >
                                                             📚 전체 단어 ({Object.keys(words).length}개)
-                                                        </button>
-                                                        <button 
-                                                            className={`btn ${selectedRange === 'all_sets' ? 'btn-primary' : 'btn-secondary'}`}
-                                                            onClick={() => setSelectedRange('all_sets')}
-                                                            style={{ 
-                                                                minWidth: '180px',
-                                                                background: selectedRange === 'all_sets' ? '#3498db' : '#bdc3c7',
-                                                                border: 'none',
-                                                                borderRadius: '8px',
-                                                                padding: '0.8rem 1.2rem',
-                                                                fontWeight: '600',
-                                                                transition: 'all 0.2s ease'
-                                                            }}
-                                                        >
-                                                            🌐 모든 세트 ({Object.values(wordSets).reduce((total, set) => total + Object.keys(set).length, 0)}개)
                                                         </button>
                                                         <button 
                                                             className={`btn ${selectedRange === 'favorites' ? 'btn-primary' : 'btn-secondary'}`}
@@ -2425,7 +2441,7 @@
                                                             className={`btn ${selectedType === 'hiragana' ? 'btn-success' : 'btn-secondary'}`}
                                                             onClick={() => setSelectedType('hiragana')}
                                                             disabled={(() => {
-                                                                const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : selectedRange === 'all_sets' ? Object.values(wordSets).reduce((all, set) => ({...all, ...set}), {}) : words;
+                                                                const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : words;
                                                                 return countHiraganaWords(targetWords) === 0;
                                                             })()}
                                                             style={{ 
@@ -2437,7 +2453,7 @@
                                                                 fontWeight: '600',
                                                                 transition: 'all 0.2s ease',
                                                                 opacity: (() => {
-                                                                    const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : selectedRange === 'all_sets' ? Object.values(wordSets).reduce((all, set) => ({...all, ...set}), {}) : words;
+                                                                    const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : words;
                                                                     return countHiraganaWords(targetWords) === 0 ? 0.5 : 1;
                                                                 })()
                                                             }}
@@ -2448,7 +2464,7 @@
                                                             className={`btn ${selectedType === 'both' ? 'btn-success' : 'btn-secondary'}`}
                                                             onClick={() => setSelectedType('both')}
                                                             disabled={(() => {
-                                                                const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : selectedRange === 'all_sets' ? Object.values(wordSets).reduce((all, set) => ({...all, ...set}), {}) : words;
+                                                                const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : words;
                                                                 return countHiraganaWords(targetWords) === 0;
                                                             })()}
                                                             style={{ 
@@ -2460,7 +2476,7 @@
                                                                 fontWeight: '600',
                                                                 transition: 'all 0.2s ease',
                                                                 opacity: (() => {
-                                                                    const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : selectedRange === 'all_sets' ? Object.values(wordSets).reduce((all, set) => ({...all, ...set}), {}) : words;
+                                                                    const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : words;
                                                                     return countHiraganaWords(targetWords) === 0 ? 0.5 : 1;
                                                                 })()
                                                             }}
@@ -2500,14 +2516,11 @@
                                                         }}
                                                         disabled={(() => {
                                                             if (selectedType === 'hiragana' || selectedType === 'both') {
-                                                                const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : selectedRange === 'all_sets' ? Object.values(wordSets).reduce((all, set) => ({...all, ...set}), {}) : words;
+                                                                const targetWords = selectedRange === 'favorites' ? getCurrentSetFavorites() : words;
                                                                 return countHiraganaWords(targetWords) === 0;
                                                             }
                                                             if (selectedRange === 'favorites') {
                                                                 return Object.keys(getCurrentSetFavorites()).length === 0;
-                                                            }
-                                                            if (selectedRange === 'all_sets') {
-                                                                return Object.values(wordSets).reduce((total, set) => total + Object.keys(set).length, 0) === 0;
                                                             }
                                                             return Object.keys(words).length === 0;
                                                         })()}
@@ -2521,7 +2534,7 @@
                                                         onClick={() => {
                                                             const targetWords = getQuizTargetWords();
                                                             const accuracy = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
-                                                            const modeText = quizMode === 'favorites' ? '표시된 단어' : quizMode === 'all_sets' ? '모든 세트 단어' : '전체 단어';
+                                                            const modeText = quizMode === 'favorites' ? '표시된 단어' : '전체 단어';
                                                             const typeText = quizType === 'hiragana' ? '히라가나' : quizType === 'both' ? '둘 다 맞추기' : quizType === 'japanese' ? '일본어로 쓰기' : '한국어';
                                                             const scoreText = quizType === 'both' ? `점수: ${score}점` : `정답수: ${score}개`;
                                                             showCustomPopup(
@@ -2550,7 +2563,7 @@
                                                             textAlign: 'center',
                                                             padding: '2rem'
                                                         }}>
-                                                            {words[currentWord].korean}
+                                                            {words[currentWord] && words[currentWord].korean}
                                                             <div style={{ 
                                                                 fontSize: '1rem', 
                                                                 color: '#7f8c8d', 
@@ -2563,7 +2576,7 @@
                                                     ) : (
                                                         // 기존 퀴즈들: 일본어를 문제로 표시
                                                         <>
-                                                            {words[currentWord].kanji && (
+                                                            {words[currentWord] && words[currentWord].kanji && (
                                                                 <div className="kanji">{words[currentWord].kanji}</div>
                                                             )}
                                                             <div className="hiragana-container">
@@ -2579,7 +2592,7 @@
                                                         </>
                                                     )}
                                                     {/* 한자가 있을 때만 히라가나 가림 버튼 표시 (japanese 퀴즈에서는 제외) */}
-                                                    {quizType !== 'japanese' && words[currentWord].kanji && words[currentWord].kanji !== currentWord && (
+                                                    {quizType !== 'japanese' && words[currentWord] && words[currentWord].kanji && words[currentWord].kanji !== currentWord && (
                                                         <button 
                                                             className="hiragana-toggle-btn"
                                                             onClick={() => setHideHiragana(!hideHiragana)}
