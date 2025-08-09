@@ -999,6 +999,8 @@
             // 퀴즈 진행 상태
             const [isLoadingNextQuestion, setIsLoadingNextQuestion] = useState(false);
             const [wrongAnswers, setWrongAnswers] = useState([]); // 틀린 문제들 저장
+            const [showWrongAnswers, setShowWrongAnswers] = useState(false); // 틀린 문제 보기 모드
+            const [wrongAnswerFavorites, setWrongAnswerFavorites] = useState({}); // 틀린 문제 즐겨찾기
 
             // 초기 데이터 로드
             useEffect(() => {
@@ -1941,22 +1943,11 @@
                         const typeText = quizType === 'hiragana' ? '히라가나' : quizType === 'both' ? '둘 다 맞추기' : quizType === 'japanese' ? '일본어로 쓰기' : '한국어';
                         const scoreDisplay = quizType === 'both' ? `${score}점` : `${score}문제 정답`;
                         
-                        // 틀린 문제 요약 생성
-                        let wrongSummary = '';
-                        if (wrongAnswers.length > 0) {
-                            wrongSummary = `\n\n틀린 문제 (${wrongAnswers.length}개):\n` + 
-                                wrongAnswers.map((item, index) => {
-                                    const questionText = item.kanji || item.hiragana;
-                                    if (item.quizType === 'both') {
-                                        return `${index + 1}. ${questionText} (${item.korean})\n   내 답: ${item.userAnswer}\n   정답: ${item.correctAnswer}`;
-                                    } else {
-                                        return `${index + 1}. ${questionText}\n   내 답: ${item.userAnswer}\n   정답: ${item.correctAnswer}`;
-                                    }
-                                }).join('\n\n');
-                        }
+                        const wrongCount = wrongAnswers.length;
+                        const wrongText = wrongCount > 0 ? `\n\n틀린 문제: ${wrongCount}개` : '';
                         
                         showCustomPopup(
-                            `🎉 축하합니다! ${modeText} ${typeText} 퀴즈를 완료했습니다!\n\n총 ${totalQuestions}문제 중 ${scoreDisplay}\n정답률: ${accuracy}%${wrongSummary}\n\n퀴즈를 다시 시작하려면 '퀴즈 재시작' 버튼을 눌러주세요.`,
+                            `🎉 축하합니다! ${modeText} ${typeText} 퀴즈를 완료했습니다!\n\n총 ${totalQuestions}문제 중 ${scoreDisplay}\n정답률: ${accuracy}%${wrongText}\n\n퀴즈를 다시 시작하려면 '퀴즈 재시작' 버튼을 눌러주세요.`,
                             '퀴즈 완료!',
                             'success'
                         );
@@ -2698,6 +2689,18 @@
                                                     >
                                                         📊 결과 보기
                                                     </button>
+                                                    {wrongAnswers.length > 0 && (
+                                                        <button 
+                                                            className="btn btn-warning" 
+                                                            onClick={() => {
+                                                                setCurrentTab('words');
+                                                                setShowWrongAnswers(true);
+                                                            }}
+                                                            style={{ marginTop: '1rem', marginLeft: '1rem' }}
+                                                        >
+                                                            ❌ 틀린 문제 확인하기 ({wrongAnswers.length}개)
+                                                        </button>
+                                                    )}
                                                 )}
                                             </div>
                                         </div>
@@ -2948,9 +2951,39 @@
 
                             {currentTab === 'words' && (
                                 <div className="card fade-in">
-                                    <h2 style={{ marginBottom: '2rem', color: '#2c3e50' }}>
-                                        📚 {setNames[currentSetId]} ({Object.keys(words).length}개 단어)
-                                    </h2>
+                                    {showWrongAnswers ? (
+                                        <>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+                                                <h2 style={{ color: '#2c3e50', margin: 0 }}>
+                                                    ❌ 틀린 문제 복습 ({wrongAnswers.length}개)
+                                                </h2>
+                                                <button 
+                                                    className="btn btn-secondary"
+                                                    onClick={() => {
+                                                        setShowWrongAnswers(false);
+                                                        setWrongAnswerFavorites({});
+                                                    }}
+                                                >
+                                                    아가기
+                                                </button>
+                                            </div>
+                                            <div style={{
+                                                backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                                                padding: '1rem',
+                                                borderRadius: '8px',
+                                                border: '1px solid rgba(231, 76, 60, 0.3)',
+                                                marginBottom: '2rem',
+                                                fontSize: '0.9rem',
+                                                color: '#c0392b'
+                                            }}>
+                                                💡 틀린 문제들을 다시 학습해보세요. ⭐ 버튼을 눌러 중요한 문제를 표시할 수 있습니다.
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <h2 style={{ marginBottom: '2rem', color: '#2c3e50' }}>
+                                            📚 {setNames[currentSetId]} ({Object.keys(words).length}개 단어)
+                                        </h2>
+                                    )}
                                     <div style={{ 
                                         fontSize: '0.9rem', 
                                         color: '#27ae60', 
@@ -2963,16 +2996,17 @@
                                         💾 현재 '{setNames[currentSetId]}' 단어장이 선택되어 있습니다. 모든 세트는 브라우저에 자동 저장됩니다!
                                     </div>
                                     
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        marginBottom: '1rem',
-                                        padding: '0.5rem',
-                                        background: 'rgba(52, 152, 219, 0.1)',
-                                        borderRadius: '8px',
-                                        border: '1px solid rgba(52, 152, 219, 0.3)'
-                                    }}>
+                                    {!showWrongAnswers && (
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            marginBottom: '1rem',
+                                            padding: '0.5rem',
+                                            background: 'rgba(52, 152, 219, 0.1)',
+                                            borderRadius: '8px',
+                                            border: '1px solid rgba(52, 152, 219, 0.3)'
+                                        }}>
                                         <div style={{ fontSize: '0.9rem', color: '#2c3e50' }}>
                                             📊 전체 세트: {Object.keys(setNames).length}개 | 
                                             전체 단어: {Object.values(wordSets).reduce((total, set) => total + Object.keys(set).length, 0)}개 |
@@ -2993,8 +3027,63 @@
                                         >
                                             {showFavoritesOnly ? '📋 전체 보기' : '⭐ 표시만 보기'}
                                         </button>
-                                    </div>
-                                    <div className="word-list">
+                                        </div>
+                                    )}
+                                    
+                                    {showWrongAnswers ? (
+                                        <div className="word-list">
+                                            {wrongAnswers.map((wrongItem, index) => {
+                                                const questionText = wrongItem.kanji || wrongItem.hiragana;
+                                                const isFavorite = wrongAnswerFavorites[index];
+                                                return (
+                                                    <div key={index} className="word-item slide-in" style={{
+                                                        border: isFavorite ? '2px solid #e74c3c' : '1px solid #e1e8ed',
+                                                        backgroundColor: isFavorite ? 'rgba(231, 76, 60, 0.05)' : 'rgba(231, 76, 60, 0.02)'
+                                                    }}>
+                                                        <div>
+                                                            <strong style={{ color: isFavorite ? '#e74c3c' : '#2c3e50' }}>
+                                                                {isFavorite ? '⭐ ' : ''}{questionText}
+                                                            </strong>
+                                                            {wrongItem.kanji && wrongItem.kanji !== wrongItem.hiragana && <span> ({wrongItem.hiragana})</span>}
+                                                            <span style={{ color: '#27ae60' }}> - {wrongItem.korean}</span>
+                                                            <br/>
+                                                            <small style={{ color: '#7f8c8d' }}>
+                                                                내 답: <span style={{ color: '#e74c3c' }}>{wrongItem.userAnswer}</span> | 
+                                                                정답: <span style={{ color: '#27ae60' }}>{wrongItem.correctAnswer}</span>
+                                                                {wrongItem.result && <span> ({wrongItem.result === 'partial' ? '부분 정답' : '오답'})</span>}
+                                                            </small>
+                                                        </div>
+                                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                            <button 
+                                                                className="btn"
+                                                                style={{ 
+                                                                    padding: '0.5rem 1rem', 
+                                                                    fontSize: '0.9rem',
+                                                                    background: isFavorite ? 'linear-gradient(45deg, #e74c3c, #c0392b)' : 'linear-gradient(45deg, #bdc3c7, #95a5a6)',
+                                                                    color: 'white'
+                                                                }}
+                                                                onClick={() => {
+                                                                    setWrongAnswerFavorites(prev => ({
+                                                                        ...prev,
+                                                                        [index]: !prev[index]
+                                                                    }));
+                                                                }}
+                                                                title={isFavorite ? "중요 표시 해제" : "중요 표시"}
+                                                            >
+                                                                {isFavorite ? '⭐ 중요' : '☆ 표시'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                            {wrongAnswers.length === 0 && (
+                                                <div style={{ textAlign: 'center', color: '#7f8c8d', padding: '2rem' }}>
+                                                    틀린 문제가 없습니다! 🎉
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="word-list">
                                         {Object.entries(getFilteredWords()).map(([hiragana, data]) => {
                                             const isFavorite = getCurrentSetFavorites()[hiragana];
                                             return (
@@ -3047,7 +3136,8 @@
                                                 </div>
                                             );
                                         })}
-                                    </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
