@@ -2671,7 +2671,8 @@
                                                     </button>
                                                 </div>
                                                 {quizCompleted && (
-                                                    <button 
+                                                    <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                                        <button 
                                                         className="btn btn-success" 
                                                         onClick={() => {
                                                             const targetWords = getQuizTargetWords();
@@ -2685,7 +2686,6 @@
                                                                 'info'
                                                             );
                                                         }}
-                                                        style={{ marginTop: '1rem' }}
                                                     >
                                                         📊 결과 보기
                                                     </button>
@@ -2696,11 +2696,11 @@
                                                                 setCurrentTab('words');
                                                                 setShowWrongAnswers(true);
                                                             }}
-                                                            style={{ marginTop: '1rem', marginLeft: '1rem' }}
                                                         >
                                                             ❌ 틀린 문제 확인하기 ({wrongAnswers.length}개)
                                                         </button>
                                                     )}
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>
