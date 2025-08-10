@@ -1001,11 +1001,16 @@
             const [wrongAnswers, setWrongAnswers] = useState([]); // 틀린 문제들 저장
             const [showWrongAnswers, setShowWrongAnswers] = useState(false); // 틀린 문제 보기 모드
             const [wrongAnswerFavorites, setWrongAnswerFavorites] = useState({}); // 틀린 문제 즐겨찾기
+            
+            // 전체 단어장 생성 관련 상태
+            const [selectedSetsForCombined, setSelectedSetsForCombined] = useState({}); // 전체 단어장에 포함할 세트들
+            const [showSetSelector, setShowSetSelector] = useState(false); // 세트 선택 UI 표시
 
             // 초기 데이터 로드
             useEffect(() => {
                 loadAllWordSets();
                 loadFavoriteWords();
+                loadSelectedSets();
             }, []);
 
             // 현재 세트가 변경될 때 단어 업데이트
@@ -1059,11 +1064,16 @@
             const updateCombinedWordSet = () => {
                 if (Object.keys(wordSets).length === 0) return;
                 
-                // 'combined' 세트가 아닌 모든 세트의 단어를 합침
+                // 선택된 세트들의 단어를 합침 (선택이 없으면 모든 세트)
                 let combinedWords = {};
+                const hasSelection = Object.keys(selectedSetsForCombined).some(setId => selectedSetsForCombined[setId]);
+                
                 Object.entries(wordSets).forEach(([setId, setWords]) => {
                     if (setId !== 'combined') {
-                        Object.assign(combinedWords, setWords);
+                        // 선택이 있으면 선택된 세트만, 없으면 모든 세트
+                        if (!hasSelection || selectedSetsForCombined[setId]) {
+                            Object.assign(combinedWords, setWords);
+                        }
                     }
                 });
                 
@@ -1130,6 +1140,27 @@
             const saveFavoriteWords = (favorites) => {
                 localStorage.setItem('japaneseFavoriteWords', JSON.stringify(favorites));
                 console.log('즐겨찾기 데이터가 저장되었습니다.');
+            };
+
+            // 전체 단어장에 선택된 세트들 로드
+            const loadSelectedSets = () => {
+                const savedSelection = localStorage.getItem('selectedSetsForCombined');
+                if (savedSelection) {
+                    try {
+                        const parsedSelection = JSON.parse(savedSelection);
+                        setSelectedSetsForCombined(parsedSelection);
+                        console.log('전체 단어장 세트 선택이 로드되었습니다.');
+                    } catch (error) {
+                        console.error('세트 선택 로드 실패:', error);
+                        setSelectedSetsForCombined({});
+                    }
+                }
+            };
+
+            // 전체 단어장에 선택된 세트들 저장
+            const saveSelectedSets = (selection) => {
+                localStorage.setItem('selectedSetsForCombined', JSON.stringify(selection));
+                console.log('전체 단어장 세트 선택이 저장되었습니다.');
             };
 
             // 단어 즐겨찾기 토글
@@ -3322,6 +3353,100 @@
                             {currentTab === 'data' && (
                                 <div className="card fade-in">
                                     <h2 style={{ marginBottom: '2rem', color: '#2c3e50' }}>💾 데이터 관리</h2>
+                                    
+                                    {/* 전체 단어장 설정 섹션 */}
+                                    <div style={{ marginBottom: '3rem' }}>
+                                        <h3 style={{ 
+                                            color: '#34495e', 
+                                            marginBottom: '1.5rem',
+                                            borderBottom: '2px solid #e74c3c',
+                                            paddingBottom: '0.5rem'
+                                        }}>🔧 전체 단어장 설정</h3>
+                                        
+                                        <div style={{
+                                            background: 'rgba(231, 76, 60, 0.1)',
+                                            padding: '1.5rem',
+                                            borderRadius: '12px',
+                                            border: '1px solid rgba(231, 76, 60, 0.3)',
+                                            marginBottom: '1rem'
+                                        }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                                <h4 style={{ color: '#e74c3c', margin: 0 }}>📋 포함할 단어장 선택</h4>
+                                                <button 
+                                                    className="btn btn-warning"
+                                                    onClick={() => setShowSetSelector(!showSetSelector)}
+                                                    style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}
+                                                >
+                                                    {showSetSelector ? '📝 선택 완료' : '✏️ 단어장 선택'}
+                                                </button>
+                                            </div>
+                                            
+                                            {showSetSelector ? (
+                                                <div>
+                                                    <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
+                                                        전체 단어장에 포함할 단어장들을 선택하세요. 선택하지 않으면 모든 단어장이 포함됩니다.
+                                                    </p>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.8rem' }}>
+                                                        {Object.entries(setNames).filter(([setId]) => setId !== 'combined').map(([setId, setName]) => (
+                                                            <label 
+                                                                key={setId}
+                                                                style={{ 
+                                                                    display: 'flex', 
+                                                                    alignItems: 'center', 
+                                                                    gap: '0.5rem',
+                                                                    padding: '0.7rem',
+                                                                    background: selectedSetsForCombined[setId] ? 'rgba(231, 76, 60, 0.1)' : 'rgba(255, 255, 255, 0.5)',
+                                                                    borderRadius: '8px',
+                                                                    border: selectedSetsForCombined[setId] ? '2px solid #e74c3c' : '1px solid #ddd',
+                                                                    cursor: 'pointer'
+                                                                }}
+                                                            >
+                                                                <input 
+                                                                    type="checkbox"
+                                                                    checked={selectedSetsForCombined[setId] || false}
+                                                                    onChange={(e) => {
+                                                                        const newSelection = {
+                                                                            ...selectedSetsForCombined,
+                                                                            [setId]: e.target.checked
+                                                                        };
+                                                                        setSelectedSetsForCombined(newSelection);
+                                                                        saveSelectedSets(newSelection);
+                                                                        // 즉시 전체 단어장 업데이트
+                                                                        setTimeout(() => updateCombinedWordSet(), 100);
+                                                                    }}
+                                                                    style={{ marginRight: '0.3rem' }}
+                                                                />
+                                                                <span style={{ fontSize: '0.9rem', color: selectedSetsForCombined[setId] ? '#e74c3c' : '#333' }}>
+                                                                    {setName} ({Object.keys(wordSets[setId] || {}).length}개)
+                                                                </span>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                    <div style={{ marginTop: '1rem', padding: '0.8rem', background: 'rgba(52, 152, 219, 0.1)', borderRadius: '6px' }}>
+                                                        <small style={{ color: '#2980b9' }}>
+                                                            💡 현재 선택: {Object.values(selectedSetsForCombined).filter(Boolean).length}개 단어장 |
+                                                            전체 단어장에 포함될 단어: {(() => {
+                                                                const hasSelection = Object.keys(selectedSetsForCombined).some(setId => selectedSetsForCombined[setId]);
+                                                                if (!hasSelection) return Object.values(wordSets).filter((_, i) => Object.keys(wordSets)[i] !== 'combined').reduce((total, set) => total + Object.keys(set).length, 0);
+                                                                return Object.entries(wordSets)
+                                                                    .filter(([setId]) => setId !== 'combined' && selectedSetsForCombined[setId])
+                                                                    .reduce((total, [_, set]) => total + Object.keys(set).length, 0);
+                                                            })()}개
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <p style={{ fontSize: '0.9rem', color: '#666', margin: 0 }}>
+                                                    현재 전체 단어장은 {(() => {
+                                                        const hasSelection = Object.keys(selectedSetsForCombined).some(setId => selectedSetsForCombined[setId]);
+                                                        const selectedCount = Object.values(selectedSetsForCombined).filter(Boolean).length;
+                                                        const totalSets = Object.keys(setNames).filter(setId => setId !== 'combined').length;
+                                                        return hasSelection ? `선택된 ${selectedCount}개 단어장` : `모든 ${totalSets}개 단어장`;
+                                                    })()}으로 구성됩니다.
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
                                     
                                     {/* 내보내기/가져오기 섹션 */}
                                     <div style={{ marginBottom: '3rem' }}>
