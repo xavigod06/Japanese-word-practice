@@ -3067,14 +3067,19 @@
                                             {wrongAnswers.map((wrongItem, index) => {
                                                 const questionText = wrongItem.kanji || wrongItem.hiragana;
                                                 const isFavorite = wrongAnswerFavorites[index];
+                                                
+                                                // 메인 단어장에서 이미 표시된 단어인지 확인
+                                                const wordKey = wrongItem.hiragana || wrongItem.question;
+                                                const isAlreadyStarred = getCurrentSetFavorites()[wordKey] || false;
+                                                
                                                 return (
                                                     <div key={index} className="word-item slide-in" style={{
-                                                        border: isFavorite ? '2px solid #e74c3c' : '1px solid #e1e8ed',
-                                                        backgroundColor: isFavorite ? 'rgba(231, 76, 60, 0.05)' : 'rgba(231, 76, 60, 0.02)'
+                                                        border: isAlreadyStarred ? '2px solid #f39c12' : '1px solid #e1e8ed',
+                                                        backgroundColor: isAlreadyStarred ? 'rgba(243, 156, 18, 0.05)' : 'rgba(231, 76, 60, 0.02)'
                                                     }}>
                                                         <div>
-                                                            <strong style={{ color: isFavorite ? '#e74c3c' : '#2c3e50' }}>
-                                                                {isFavorite ? '⭐ ' : ''}{questionText}
+                                                            <strong style={{ color: isAlreadyStarred ? '#f39c12' : '#2c3e50' }}>
+                                                                {isAlreadyStarred ? '⭐ ' : ''}{questionText}
                                                             </strong>
                                                             {wrongItem.kanji && wrongItem.kanji !== wrongItem.hiragana && <span> ({wrongItem.hiragana})</span>}
                                                             <span style={{ color: '#27ae60' }}> - {wrongItem.korean}</span>
@@ -3091,22 +3096,22 @@
                                                                 style={{ 
                                                                     padding: '0.5rem 1rem', 
                                                                     fontSize: '0.9rem',
-                                                                    background: isFavorite ? 'linear-gradient(45deg, #e74c3c, #c0392b)' : 'linear-gradient(45deg, #bdc3c7, #95a5a6)',
+                                                                    background: isAlreadyStarred ? 'linear-gradient(45deg, #f39c12, #e67e22)' : 'linear-gradient(45deg, #bdc3c7, #95a5a6)',
                                                                     color: 'white'
                                                                 }}
                                                                 onClick={() => {
                                                                     const wordKey = wrongItem.hiragana || wrongItem.question;
                                                                     // 실제 단어장에 즐겨찾기 추가/제거
                                                                     toggleWordFavorite(wordKey);
-                                                                    // 로컬 상태도 업데이트
+                                                                    // 로컬 상태도 업데이트 (틀린문제 전용 즐겨찾기는 제거)
                                                                     setWrongAnswerFavorites(prev => ({
                                                                         ...prev,
-                                                                        [index]: !prev[index]
+                                                                        [index]: false
                                                                     }));
                                                                 }}
-                                                                title={isFavorite ? "표시 해제" : "표시 추가"}
+                                                                title={isAlreadyStarred ? "표시 해제" : "표시 추가"}
                                                             >
-                                                                {isFavorite ? '⭐ 표시됨' : '☆ 표시'}
+                                                                {isAlreadyStarred ? '⭐ 표시됨' : '☆ 표시'}
                                                             </button>
                                                         </div>
                                                     </div>
