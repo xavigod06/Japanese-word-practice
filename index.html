@@ -3341,16 +3341,6 @@
                                             {isEditMode ? '✅ 수정 완료' : '➕ 단어 추가'}
                                         </button>
                                         
-                                        {/* 커스텀 팝업 테스트 버튼 */}
-                                        <button 
-                                            className="btn btn-warning" 
-                                            onClick={async () => {
-                                                console.log('테스트 버튼 클릭');
-                                                await showCustomPopup('🧪 이것은 커스텀 팝업 테스트입니다!\n\n브라우저 기본 alert 대신 이 예쁜 팝업이 표시됩니다! ✨', '커스텀 팝업 테스트', 'info');
-                                            }}
-                                        >
-                                            🎨 커스텀 팝업 테스트
-                                        </button>
                                     </div>
                                 </div>
                             )}
