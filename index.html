@@ -1053,6 +1053,61 @@
             // 전체 단어장 생성 관련 상태
             const [selectedSetsForCombined, setSelectedSetsForCombined] = useState({}); // 전체 단어장에 포함할 세트들
             const [showSetSelector, setShowSetSelector] = useState(false); // 세트 선택 UI 표시
+            
+            // 단어 검색 관련 상태
+            const [searchQuery, setSearchQuery] = useState(''); // 검색어
+
+            // 기존 hangulToHiragana 사전을 역방향으로 활용하여 hiraganaToKorean 생성
+            const createHiraganaToKoreanMap = () => {
+                const reverseMap = {};
+                
+                // hangulToHiragana의 모든 항목을 역방향으로 매핑
+                Object.entries(hangulToHiragana).forEach(([korean, hiragana]) => {
+                    if (hiragana && hiragana.trim() !== '') {
+                        reverseMap[hiragana] = korean;
+                    }
+                });
+                
+                // 추가 특수 문자들
+                reverseMap['ー'] = '우'; // 장음 표시
+                reverseMap['・'] = ''; // 중점은 무시
+                
+                return reverseMap;
+            };
+            
+            // 효율적인 히라가나→한글 변환 사전 (기존 사전의 역방향 활용)
+            const hiraganaToKorean = createHiraganaToKoreanMap();
+
+            // 히라가나 문자열을 한글 발음으로 변환 (개선된 버전)
+            const convertHiraganaToKorean = (hiraganaText) => {
+                if (!hiraganaText) return '';
+                
+                let result = '';
+                let i = 0;
+                
+                while (i < hiraganaText.length) {
+                    let matched = false;
+                    
+                    // 긴 조합부터 확인 (4글자 → 3글자 → 2글자 → 1글자)
+                    for (let len = Math.min(4, hiraganaText.length - i); len >= 1; len--) {
+                        const substr = hiraganaText.substring(i, i + len);
+                        if (hiraganaToKorean[substr]) {
+                            result += hiraganaToKorean[substr];
+                            i += len;
+                            matched = true;
+                            break;
+                        }
+                    }
+                    
+                    // 변환되지 않는 문자는 그대로 추가
+                    if (!matched) {
+                        result += hiraganaText.charAt(i);
+                        i++;
+                    }
+                }
+                
+                return result;
+            };
 
             // 초기 데이터 로드
             useEffect(() => {
@@ -1241,18 +1296,47 @@
                 return favoriteWords[currentSetId] || {};
             };
 
-            // 즐겨찾기된 단어만 필터링
+            // 즐겨찾기 및 검색어로 단어 필터링
             const getFilteredWords = () => {
-                if (!showFavoritesOnly) return words;
+                let filteredWords = words;
                 
-                const currentFavorites = getCurrentSetFavorites();
-                const filteredWords = {};
+                // 1. 즐겨찾기 필터링
+                if (showFavoritesOnly) {
+                    const currentFavorites = getCurrentSetFavorites();
+                    const favoriteWords = {};
+                    
+                    Object.keys(words).forEach(wordKey => {
+                        if (currentFavorites[wordKey]) {
+                            favoriteWords[wordKey] = words[wordKey];
+                        }
+                    });
+                    filteredWords = favoriteWords;
+                }
                 
-                Object.keys(words).forEach(wordKey => {
-                    if (currentFavorites[wordKey]) {
-                        filteredWords[wordKey] = words[wordKey];
-                    }
-                });
+                // 2. 검색어 필터링
+                if (searchQuery.trim()) {
+                    const query = searchQuery.toLowerCase().trim();
+                    const searchedWords = {};
+                    
+                    Object.entries(filteredWords).forEach(([hiragana, data]) => {
+                        // 히라가나, 한자, 한국어 뜻, 히라가나의 한글 발음에서 검색
+                        const koreanPronunciation = convertHiraganaToKorean(hiragana);
+                        const searchTargets = [
+                            hiragana,                           // 히라가나
+                            data.kanji || '',                  // 한자
+                            data.korean || '',                 // 한국어 뜻
+                            koreanPronunciation,               // 히라가나의 한글 발음
+                        ].map(text => text.toLowerCase());
+                        
+                        // 검색어가 포함되어 있는지 확인
+                        const isMatch = searchTargets.some(target => target.includes(query));
+                        
+                        if (isMatch) {
+                            searchedWords[hiragana] = data;
+                        }
+                    });
+                    filteredWords = searchedWords;
+                }
                 
                 return filteredWords;
             };
@@ -3077,36 +3161,93 @@
                                     </div>
                                     
                                     {!showWrongAnswers && (
+                                        {/* 검색 및 필터 컨트롤 */}
                                         <div style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
                                             marginBottom: '1rem',
-                                            padding: '0.5rem',
+                                            padding: '1rem',
                                             background: 'rgba(52, 152, 219, 0.1)',
                                             borderRadius: '8px',
                                             border: '1px solid rgba(52, 152, 219, 0.3)'
                                         }}>
-                                        <div style={{ fontSize: '0.9rem', color: '#2c3e50' }}>
-                                            📊 전체 세트: {Object.keys(setNames).length}개 | 
-                                            전체 단어: {Object.values(wordSets).reduce((total, set) => total + Object.keys(set).length, 0)}개 |
-                                            표시된 단어: {Object.keys(getCurrentSetFavorites()).length}개
-                                        </div>
-                                        <button
-                                            className="btn"
-                                            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                                            style={{
-                                                padding: '0.3rem 0.8rem',
-                                                fontSize: '0.8rem',
-                                                background: showFavoritesOnly ? 'linear-gradient(45deg, #f39c12, #e67e22)' : 'linear-gradient(45deg, #bdc3c7, #95a5a6)',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '6px'
-                                            }}
-                                            title={showFavoritesOnly ? "모든 단어 보기" : "표시된 단어만 보기"}
-                                        >
-                                            {showFavoritesOnly ? '📋 전체 보기' : '⭐ 표시만 보기'}
-                                        </button>
+                                            {/* 검색 입력 필드 */}
+                                            <div style={{ marginBottom: '1rem' }}>
+                                                <div style={{ 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    gap: '0.5rem',
+                                                    marginBottom: '0.5rem'
+                                                }}>
+                                                    <span style={{ fontSize: '0.9rem', color: '#2c3e50', fontWeight: 'bold' }}>
+                                                        🔍 단어 검색
+                                                    </span>
+                                                    {searchQuery && (
+                                                        <span style={{ fontSize: '0.8rem', color: '#e74c3c' }}>
+                                                            ({Object.keys(getFilteredWords()).length}개 결과)
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={searchQuery}
+                                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                                    placeholder="히라가나, 한자, 한국어 뜻, 발음으로 검색... (예: 학교, がっこう, 学校, 갓코우)"
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '0.7rem',
+                                                        fontSize: '0.9rem',
+                                                        border: '1px solid #ddd',
+                                                        borderRadius: '6px',
+                                                        backgroundColor: 'white'
+                                                    }}
+                                                />
+                                                {searchQuery && (
+                                                    <button
+                                                        onClick={() => setSearchQuery('')}
+                                                        style={{
+                                                            position: 'absolute',
+                                                            right: '1.5rem',
+                                                            marginTop: '-2.2rem',
+                                                            background: 'none',
+                                                            border: 'none',
+                                                            fontSize: '1.2rem',
+                                                            color: '#e74c3c',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                        title="검색어 지우기"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                )}
+                                            </div>
+                                            
+                                            {/* 통계 및 필터 버튼 */}
+                                            <div style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center'
+                                            }}>
+                                                <div style={{ fontSize: '0.9rem', color: '#2c3e50' }}>
+                                                    📊 전체 세트: {Object.keys(setNames).length}개 | 
+                                                    전체 단어: {Object.values(wordSets).reduce((total, set) => total + Object.keys(set).length, 0)}개 |
+                                                    표시된 단어: {Object.keys(getCurrentSetFavorites()).length}개
+                                                    {searchQuery && ` | 검색 결과: ${Object.keys(getFilteredWords()).length}개`}
+                                                </div>
+                                                <button
+                                                    className="btn"
+                                                    onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                                                    style={{
+                                                        padding: '0.3rem 0.8rem',
+                                                        fontSize: '0.8rem',
+                                                        background: showFavoritesOnly ? 'linear-gradient(45deg, #f39c12, #e67e22)' : 'linear-gradient(45deg, #bdc3c7, #95a5a6)',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '6px'
+                                                    }}
+                                                    title={showFavoritesOnly ? "모든 단어 보기" : "표시된 단어만 보기"}
+                                                >
+                                                    {showFavoritesOnly ? '📋 전체 보기' : '⭐ 표시만 보기'}
+                                                </button>
+                                            </div>
                                         </div>
                                     )}
                                     
@@ -3225,6 +3366,48 @@
                                                 </div>
                                             );
                                         })}
+                                        {Object.keys(getFilteredWords()).length === 0 && (
+                                            <div style={{ 
+                                                textAlign: 'center', 
+                                                color: '#7f8c8d', 
+                                                padding: '3rem 1rem',
+                                                background: 'rgba(189, 195, 199, 0.1)',
+                                                borderRadius: '8px',
+                                                border: '1px dashed rgba(189, 195, 199, 0.3)'
+                                            }}>
+                                                {searchQuery ? (
+                                                    <div>
+                                                        <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🔍</div>
+                                                        <div style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>
+                                                            '{searchQuery}' 검색 결과가 없습니다
+                                                        </div>
+                                                        <div style={{ fontSize: '0.9rem', color: '#95a5a6' }}>
+                                                            다른 키워드로 검색해보거나 새 단어를 추가해보세요
+                                                        </div>
+                                                    </div>
+                                                ) : showFavoritesOnly ? (
+                                                    <div>
+                                                        <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⭐</div>
+                                                        <div style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>
+                                                            표시된 단어가 없습니다
+                                                        </div>
+                                                        <div style={{ fontSize: '0.9rem', color: '#95a5a6' }}>
+                                                            단어에 ⭐ 표시를 해보세요
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📚</div>
+                                                        <div style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>
+                                                            단어장이 비어있습니다
+                                                        </div>
+                                                        <div style={{ fontSize: '0.9rem', color: '#95a5a6' }}>
+                                                            새 단어를 추가해보세요
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                         </div>
                                     )}
                                 </div>
