@@ -1001,6 +1001,7 @@
             const [score, setScore] = useState(0);
             const [totalQuestions, setTotalQuestions] = useState(0);
             const [result, setResult] = useState(null);
+            const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false); // 답안 제출 상태
             const [quizStarted, setQuizStarted] = useState(false);
             const [usedWords, setUsedWords] = useState(new Set()); // 이미 출제된 문제들
             const [quizCompleted, setQuizCompleted] = useState(false); // 퀴즈 완료 여부
@@ -2140,6 +2141,7 @@
                     setUserAnswer('');
                     setResult(null);
                     setConvertedQuizAnswer(''); // 변환된 답안 초기화
+                    setIsAnswerSubmitted(false); // 답안 제출 상태 초기화
                     
                     // 둘 다 맞추기 퀴즈 상태 초기화
                     setUserKoreanAnswer('');
@@ -2164,7 +2166,9 @@
             };
 
             const checkAnswer = () => {
-                if (!currentWord) return;
+                if (!currentWord || isAnswerSubmitted) return;
+                
+                setIsAnswerSubmitted(true); // 답안 제출 상태로 설정
                 
                 if (quizType === 'both') {
                     // 둘 다 맞추기 퀴즈 로직
@@ -2509,7 +2513,7 @@
             };
 
             const handleKeyPress = (e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && !isAnswerSubmitted) {
                     if (quizType === 'both') {
                         // 둘 다 맞추기 퀴즈에서는 둘 다 입력했을 때만 체크
                         if (userKoreanAnswer.trim() && userHiraganaAnswer.trim()) {
@@ -2522,7 +2526,7 @@
             };
 
             const handleBothQuizKeyPress = (e, type) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && !isAnswerSubmitted) {
                     if (type === 'korean' && userKoreanAnswer.trim() && userHiraganaAnswer.trim()) {
                         checkAnswer();
                     } else if (type === 'hiragana' && userKoreanAnswer.trim() && userHiraganaAnswer.trim()) {
@@ -3078,9 +3082,10 @@
                                                 <button 
                                                     className="btn btn-success" 
                                                     onClick={checkAnswer}
-                                                    disabled={quizType === 'both' && (!userKoreanAnswer.trim() || !userHiraganaAnswer.trim())}
-                                                    title={quizType === 'both' && (!userKoreanAnswer.trim() || !userHiraganaAnswer.trim()) ? 
-                                                          '한국어와 히라가나를 모두 입력해주세요' : ''}
+                                                    disabled={isAnswerSubmitted || (quizType === 'both' && (!userKoreanAnswer.trim() || !userHiraganaAnswer.trim()))}
+                                                    title={isAnswerSubmitted ? '이미 답안이 제출되었습니다' : 
+                                                           (quizType === 'both' && (!userKoreanAnswer.trim() || !userHiraganaAnswer.trim()) ? 
+                                                           '한국어와 히라가나를 모두 입력해주세요' : '')}
                                                 >
                                                     {quizType === 'both' ? '둘 다 정답 확인' : '정답 확인'}
                                                 </button>
