@@ -3126,15 +3126,37 @@
                                                 <h2 style={{ color: '#2c3e50', margin: 0 }}>
                                                     ❌ 틀린 문제 복습 ({wrongAnswers.length}개)
                                                 </h2>
-                                                <button 
-                                                    className="btn btn-secondary"
-                                                    onClick={() => {
-                                                        setShowWrongAnswers(false);
-                                                        setWrongAnswerFavorites({});
-                                                    }}
-                                                >
-                                                    돌아가기
-                                                </button>
+                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                    <button
+                                                        className="btn btn-primary"
+                                                        onClick={() => {
+                                                            // 모든 틀린 문제들을 북마크에 추가
+                                                            wrongAnswers.forEach(wrongItem => {
+                                                                const wordKey = wrongItem.hiragana || wrongItem.question;
+                                                                if (wordKey && !favorites[wordKey]) {
+                                                                    toggleWordFavorite(wordKey);
+                                                                }
+                                                            });
+
+                                                            // 성공 메시지 표시
+                                                            showCustomPopup(
+                                                                `⭐ ${wrongAnswers.length}개의 틀린 문제가 모두 북마크에 추가되었습니다!`,
+                                                                '북마크 추가 완료'
+                                                            );
+                                                        }}
+                                                    >
+                                                        ⭐ 전체 표시하기
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-secondary"
+                                                        onClick={() => {
+                                                            setShowWrongAnswers(false);
+                                                            setWrongAnswerFavorites({});
+                                                        }}
+                                                    >
+                                                        돌아가기
+                                                    </button>
+                                                </div>
                                             </div>
                                             <div style={{
                                                 backgroundColor: 'rgba(231, 76, 60, 0.1)',
