@@ -3131,18 +3131,29 @@
                                                         className="btn btn-primary"
                                                         onClick={() => {
                                                             // 모든 틀린 문제들을 북마크에 추가
+                                                            const currentFavorites = getCurrentSetFavorites();
+                                                            let addedCount = 0;
+
                                                             wrongAnswers.forEach(wrongItem => {
                                                                 const wordKey = wrongItem.hiragana || wrongItem.question;
-                                                                if (wordKey && !favorites[wordKey]) {
+                                                                if (wordKey && !currentFavorites[wordKey]) {
                                                                     toggleWordFavorite(wordKey);
+                                                                    addedCount++;
                                                                 }
                                                             });
 
                                                             // 성공 메시지 표시
-                                                            showCustomPopup(
-                                                                `⭐ ${wrongAnswers.length}개의 틀린 문제가 모두 북마크에 추가되었습니다!`,
-                                                                '북마크 추가 완료'
-                                                            );
+                                                            if (addedCount > 0) {
+                                                                showCustomPopup(
+                                                                    `⭐ ${addedCount}개의 틀린 문제가 북마크에 추가되었습니다!`,
+                                                                    '북마크 추가 완료'
+                                                                );
+                                                            } else {
+                                                                showCustomPopup(
+                                                                    '모든 틀린 문제가 이미 북마크되어 있습니다!',
+                                                                    '알림'
+                                                                );
+                                                            }
                                                         }}
                                                     >
                                                         ⭐ 전체 표시하기
