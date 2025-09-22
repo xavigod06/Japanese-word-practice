@@ -3142,6 +3142,12 @@
                                                                 }
                                                             });
 
+                                                            // 상태 강제 업데이트를 위해 작은 지연 후 재렌더링 트리거
+                                                            setTimeout(() => {
+                                                                setShowWrongAnswers(false);
+                                                                setShowWrongAnswers(true);
+                                                            }, 100);
+
                                                             // 성공 메시지 표시
                                                             if (addedCount > 0) {
                                                                 showCustomPopup(
@@ -3337,6 +3343,12 @@
                                                                         ...prev,
                                                                         [index]: false
                                                                     }));
+
+                                                                    // 상태 강제 업데이트를 위해 재렌더링 트리거
+                                                                    setTimeout(() => {
+                                                                        setShowWrongAnswers(false);
+                                                                        setShowWrongAnswers(true);
+                                                                    }, 50);
                                                                 }}
                                                                 title={isAlreadyStarred ? "표시 해제" : "표시 추가"}
                                                             >
