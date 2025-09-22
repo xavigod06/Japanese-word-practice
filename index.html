@@ -1297,6 +1297,34 @@
                 return favoriteWords[currentSetId] || {};
             };
 
+            // 현재 세트의 모든 표시 해제
+            const clearAllFavorites = async () => {
+                const currentFavorites = getCurrentSetFavorites();
+                const favoriteCount = Object.keys(currentFavorites).length;
+
+                if (favoriteCount === 0) {
+                    showAlert('표시된 단어가 없습니다.', 'info');
+                    return;
+                }
+
+                const confirmed = await showCustomPopup(
+                    `현재 세트의 표시된 단어 ${favoriteCount}개를 모두 해제하시겠습니까?`,
+                    '전체 표시 해제',
+                    '해제',
+                    '취소'
+                );
+
+                if (confirmed) {
+                    const updatedFavorites = { ...favoriteWords };
+                    updatedFavorites[currentSetId] = {};
+
+                    setFavoriteWords(updatedFavorites);
+                    saveFavoriteWords(updatedFavorites);
+
+                    showAlert(`⭐ ${favoriteCount}개 단어의 표시를 모두 해제했습니다.`, 'success');
+                }
+            };
+
             // 즐겨찾기 및 검색어로 단어 필터링
             const getFilteredWords = () => {
                 let filteredWords = words;
@@ -3272,26 +3300,45 @@
                                                 alignItems: 'center'
                                             }}>
                                                 <div style={{ fontSize: '0.9rem', color: '#2c3e50' }}>
-                                                    📊 전체 세트: {Object.keys(setNames).length}개 | 
+                                                    📊 전체 세트: {Object.keys(setNames).length}개 |
                                                     전체 단어: {Object.values(wordSets).reduce((total, set) => total + Object.keys(set).length, 0)}개 |
                                                     표시된 단어: {Object.keys(getCurrentSetFavorites()).length}개
                                                     {searchQuery && ` | 검색 결과: ${Object.keys(getFilteredWords()).length}개`}
                                                 </div>
-                                                <button
-                                                    className="btn"
-                                                    onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                                                    style={{
-                                                        padding: '0.3rem 0.8rem',
-                                                        fontSize: '0.8rem',
-                                                        background: showFavoritesOnly ? 'linear-gradient(45deg, #f39c12, #e67e22)' : 'linear-gradient(45deg, #bdc3c7, #95a5a6)',
-                                                        color: 'white',
-                                                        border: 'none',
-                                                        borderRadius: '6px'
-                                                    }}
-                                                    title={showFavoritesOnly ? "모든 단어 보기" : "표시된 단어만 보기"}
-                                                >
-                                                    {showFavoritesOnly ? '📋 전체 보기' : '⭐ 표시만 보기'}
-                                                </button>
+                                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                                    {showFavoritesOnly && Object.keys(getCurrentSetFavorites()).length > 0 && (
+                                                        <button
+                                                            className="btn"
+                                                            onClick={clearAllFavorites}
+                                                            style={{
+                                                                padding: '0.3rem 0.8rem',
+                                                                fontSize: '0.8rem',
+                                                                background: 'linear-gradient(45deg, #e74c3c, #c0392b)',
+                                                                color: 'white',
+                                                                border: 'none',
+                                                                borderRadius: '6px'
+                                                            }}
+                                                            title="전체 표시 해제"
+                                                        >
+                                                            🗑️ 전체 해제
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        className="btn"
+                                                        onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                                                        style={{
+                                                            padding: '0.3rem 0.8rem',
+                                                            fontSize: '0.8rem',
+                                                            background: showFavoritesOnly ? 'linear-gradient(45deg, #f39c12, #e67e22)' : 'linear-gradient(45deg, #bdc3c7, #95a5a6)',
+                                                            color: 'white',
+                                                            border: 'none',
+                                                            borderRadius: '6px'
+                                                        }}
+                                                        title={showFavoritesOnly ? "모든 단어 보기" : "표시된 단어만 보기"}
+                                                    >
+                                                        {showFavoritesOnly ? '📋 전체 보기' : '⭐ 표시만 보기'}
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                         </div>
