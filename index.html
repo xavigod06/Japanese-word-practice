@@ -3162,22 +3162,33 @@
                                                             const currentFavorites = getCurrentSetFavorites();
                                                             let addedCount = 0;
 
+                                                            // 한 번에 모든 단어를 추가하기 위한 새로운 favoriteWords 객체 생성
+                                                            const updatedCurrentSetFavorites = { ...currentFavorites };
+
                                                             wrongAnswers.forEach(wrongItem => {
                                                                 const wordKey = wrongItem.hiragana || wrongItem.question;
                                                                 if (wordKey && !currentFavorites[wordKey]) {
-                                                                    toggleWordFavorite(wordKey);
+                                                                    updatedCurrentSetFavorites[wordKey] = true;
                                                                     addedCount++;
                                                                 }
                                                             });
 
-                                                            // 상태 강제 업데이트를 위해 작은 지연 후 재렌더링 트리거
-                                                            setTimeout(() => {
-                                                                setShowWrongAnswers(false);
-                                                                setShowWrongAnswers(true);
-                                                            }, 100);
-
-                                                            // 성공 메시지 표시
+                                                            // 한 번에 모든 변경사항을 반영
                                                             if (addedCount > 0) {
+                                                                const updatedFavorites = {
+                                                                    ...favoriteWords,
+                                                                    [currentSetId]: updatedCurrentSetFavorites
+                                                                };
+
+                                                                setFavoriteWords(updatedFavorites);
+                                                                saveFavoriteWords(updatedFavorites);
+
+                                                                // 상태 강제 업데이트를 위해 작은 지연 후 재렌더링 트리거
+                                                                setTimeout(() => {
+                                                                    setShowWrongAnswers(false);
+                                                                    setShowWrongAnswers(true);
+                                                                }, 100);
+
                                                                 showCustomPopup(
                                                                     `⭐ ${addedCount}개의 틀린 문제가 북마크에 추가되었습니다!`,
                                                                     '북마크 추가 완료'
