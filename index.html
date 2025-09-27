@@ -1058,6 +1058,11 @@
             // 단어 검색 관련 상태
             const [searchQuery, setSearchQuery] = useState(''); // 검색어
 
+            // 한자 발음 조회 관련 상태
+            const [kanjiInput, setKanjiInput] = useState(''); // 입력한 한자
+            const [kanjiResult, setKanjiResult] = useState(null); // 조회 결과
+            const [kanjiError, setKanjiError] = useState(''); // 오류 메시지
+
             // 기존 hangulToHiragana 사전을 역방향으로 활용하여 hiraganaToKorean 생성
             const createHiraganaToKoreanMap = () => {
                 const reverseMap = {};
@@ -1942,6 +1947,224 @@
                 }
             };
 
+            // 한자 발음 조회 함수들
+            const lookupKanjiPronunciation = async () => {
+                if (!kanjiInput.trim()) {
+                    setKanjiError('한자를 입력해주세요.');
+                    return;
+                }
+
+                setKanjiError('');
+                setKanjiResult(null);
+
+                try {
+                    // 먼저 내장 사전에서 검색
+                    const hiraganaReverse = Object.keys(kanjiDict).find(hiragana => kanjiDict[hiragana] === kanjiInput.trim());
+
+                    if (hiraganaReverse) {
+                        // 내장 사전에서 찾은 경우
+                        const result = {
+                            kanji: kanjiInput.trim(),
+                            hiragana: hiraganaReverse,
+                            romaji: convertHiraganaToRomaji(hiraganaReverse),
+                            meaning: ''
+                        };
+                        setKanjiResult(result);
+                        return;
+                    }
+
+                    // 기존 단어장에서 검색
+                    const allWords = getAllWords();
+                    for (const [hiragana, wordData] of Object.entries(allWords)) {
+                        if (wordData.kanji === kanjiInput.trim()) {
+                            const result = {
+                                kanji: kanjiInput.trim(),
+                                hiragana: hiragana,
+                                romaji: convertHiraganaToRomaji(hiragana),
+                                meaning: wordData.korean || ''
+                            };
+                            setKanjiResult(result);
+                            return;
+                        }
+                    }
+
+                    // 간단한 한자 변환 (기본적인 변환만)
+                    let hiraganaAttempt = '';
+                    for (let char of kanjiInput.trim()) {
+                        const found = Object.keys(kanjiDict).find(hiragana => kanjiDict[hiragana] === char);
+                        if (found) {
+                            hiraganaAttempt += found;
+                        } else {
+                            hiraganaAttempt += char;
+                        }
+                    }
+
+                    if (hiraganaAttempt !== kanjiInput.trim()) {
+                        const result = {
+                            kanji: kanjiInput.trim(),
+                            hiragana: hiraganaAttempt,
+                            romaji: convertHiraganaToRomaji(hiraganaAttempt),
+                            meaning: ''
+                        };
+                        setKanjiResult(result);
+                    } else {
+                        setKanjiError('해당 한자의 발음을 찾을 수 없습니다. 단어장에 추가된 단어나 기본 한자만 지원됩니다.');
+                    }
+
+                } catch (error) {
+                    console.error('한자 발음 조회 오류:', error);
+                    setKanjiError('발음 조회 중 오류가 발생했습니다.');
+                }
+            };
+
+            // 모든 단어장의 단어들을 가져오는 함수
+            const getAllWords = () => {
+                let allWords = {};
+                Object.values(wordSets).forEach(wordSet => {
+                    Object.assign(allWords, wordSet);
+                });
+                return allWords;
+            };
+
+            // 히라가나를 로마자로 변환
+            const convertHiraganaToRomaji = (hiragana) => {
+                const hiraganaToRomaji = {
+                    'あ': 'a', 'い': 'i', 'う': 'u', 'え': 'e', 'お': 'o',
+                    'か': 'ka', 'き': 'ki', 'く': 'ku', 'け': 'ke', 'こ': 'ko',
+                    'が': 'ga', 'ぎ': 'gi', 'ぐ': 'gu', 'げ': 'ge', 'ご': 'go',
+                    'さ': 'sa', 'し': 'shi', 'す': 'su', 'せ': 'se', 'そ': 'so',
+                    'ざ': 'za', 'じ': 'ji', 'ず': 'zu', 'ぜ': 'ze', 'ぞ': 'zo',
+                    'た': 'ta', 'ち': 'chi', 'つ': 'tsu', 'て': 'te', 'と': 'to',
+                    'だ': 'da', 'ぢ': 'ji', 'づ': 'zu', 'で': 'de', 'ど': 'do',
+                    'な': 'na', 'に': 'ni', 'ぬ': 'nu', 'ね': 'ne', 'の': 'no',
+                    'は': 'ha', 'ひ': 'hi', 'ふ': 'fu', 'へ': 'he', 'ほ': 'ho',
+                    'ば': 'ba', 'び': 'bi', 'ぶ': 'bu', 'べ': 'be', 'ぼ': 'bo',
+                    'ぱ': 'pa', 'ぴ': 'pi', 'ぷ': 'pu', 'ぺ': 'pe', 'ぽ': 'po',
+                    'ま': 'ma', 'み': 'mi', 'む': 'mu', 'め': 'me', 'も': 'mo',
+                    'や': 'ya', 'ゆ': 'yu', 'よ': 'yo',
+                    'ら': 'ra', 'り': 'ri', 'る': 'ru', 'れ': 're', 'ろ': 'ro',
+                    'わ': 'wa', 'ゐ': 'wi', 'ゑ': 'we', 'を': 'wo', 'ん': 'n',
+                    'っ': '',
+                    // 요음
+                    'きゃ': 'kya', 'きゅ': 'kyu', 'きょ': 'kyo',
+                    'しゃ': 'sha', 'しゅ': 'shu', 'しょ': 'sho',
+                    'ちゃ': 'cha', 'ちゅ': 'chu', 'ちょ': 'cho',
+                    'にゃ': 'nya', 'にゅ': 'nyu', 'にょ': 'nyo',
+                    'ひゃ': 'hya', 'ひゅ': 'hyu', 'ひょ': 'hyo',
+                    'みゃ': 'mya', 'みゅ': 'myu', 'みょ': 'myo',
+                    'りゃ': 'rya', 'りゅ': 'ryu', 'りょ': 'ryo',
+                    'ぎゃ': 'gya', 'ぎゅ': 'gyu', 'ぎょ': 'gyo',
+                    'じゃ': 'ja', 'じゅ': 'ju', 'じょ': 'jo',
+                    'びゃ': 'bya', 'びゅ': 'byu', 'びょ': 'byo',
+                    'ぴゃ': 'pya', 'ぴゅ': 'pyu', 'ぴょ': 'pyo'
+                };
+
+                let result = '';
+                let i = 0;
+                while (i < hiragana.length) {
+                    let matched = false;
+                    // 3글자 조합부터 확인
+                    for (let len = 3; len >= 1; len--) {
+                        if (i + len <= hiragana.length) {
+                            const substr = hiragana.substr(i, len);
+                            if (hiraganaToRomaji[substr]) {
+                                // っ 처리 - 다음 자음을 중복
+                                if (substr === 'っ' && i + 1 < hiragana.length) {
+                                    const nextChar = hiragana[i + 1];
+                                    const nextRomaji = hiraganaToRomaji[nextChar] || nextChar;
+                                    if (nextRomaji && nextRomaji[0]) {
+                                        result += nextRomaji[0];
+                                    }
+                                } else {
+                                    result += hiraganaToRomaji[substr];
+                                }
+                                i += len;
+                                matched = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!matched) {
+                        result += hiragana[i];
+                        i++;
+                    }
+                }
+                return result;
+            };
+
+            // 발음 듣기 (Web Speech API 사용)
+            const playPronunciation = (text) => {
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'ja-JP';
+                    utterance.rate = 0.8;
+                    speechSynthesis.speak(utterance);
+                } else {
+                    showAlert('음성 재생을 지원하지 않는 브라우저입니다.', 'warning');
+                }
+            };
+
+            // 클립보드 복사
+            const copyToClipboard = (text) => {
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showAlert('클립보드에 복사되었습니다!', 'success');
+                    }).catch(() => {
+                        showAlert('복사에 실패했습니다.', 'error');
+                    });
+                } else {
+                    // 구형 브라우저 지원
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        showAlert('클립보드에 복사되었습니다!', 'success');
+                    } catch (err) {
+                        showAlert('복사에 실패했습니다.', 'error');
+                    }
+                    document.body.removeChild(textArea);
+                }
+            };
+
+            // 한자 단어를 단어장에 추가
+            const addKanjiToWordlist = (kanjiData) => {
+                if (!kanjiData) return;
+
+                // 기존에 있는지 확인
+                if (words[kanjiData.hiragana]) {
+                    showAlert('이미 단어장에 있는 단어입니다.', 'warning');
+                    return;
+                }
+
+                // 현재 단어장에 추가
+                const newWords = {
+                    ...words,
+                    [kanjiData.hiragana]: {
+                        kanji: kanjiData.kanji,
+                        korean: kanjiData.meaning || '(뜻 없음)'
+                    }
+                };
+
+                setWords(newWords);
+
+                // 해당 세트 업데이트
+                const updatedSets = {
+                    ...wordSets,
+                    [currentSetId]: newWords
+                };
+                setWordSets(updatedSets);
+
+                // 로컬 스토리지에 저장
+                localStorage.setItem('japaneseWordSets', JSON.stringify(updatedSets));
+
+                showAlert('단어장에 추가되었습니다!', 'success');
+
+                // 전체 단어장 업데이트
+                setTimeout(() => updateCombinedWordSet(), 100);
+            };
+
             const restoreBackup = async () => {
                 try {
                     const backupData = localStorage.getItem('japaneseWordSetsBackup');
@@ -2677,11 +2900,17 @@
                             >
                                 ➕ 단어 추가
                             </button>
-                            <button 
+                            <button
                                 className={`nav-btn ${currentTab === 'data' ? 'active' : ''}`}
                                 onClick={() => setCurrentTab('data')}
                             >
                                 💾 데이터 관리
+                            </button>
+                            <button
+                                className={`nav-btn ${currentTab === 'kanji' ? 'active' : ''}`}
+                                onClick={() => setCurrentTab('kanji')}
+                            >
+                                🔍 한자 발음
                             </button>
                         </nav>
                     </header>
@@ -3968,6 +4197,173 @@
                                             <li>CSV 형식은 Excel에서 단어를 대량 편집한 후 다시 가져올 때 유용합니다</li>
                                             <li>브라우저 데이터를 삭제하기 전에 반드시 백업을 만드세요</li>
                                             <li>다른 기기에서 사용하려면 JSON 파일을 내보낸 후 새 기기에서 가져오세요</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            )}
+
+                            {currentTab === 'kanji' && (
+                                <div className="card fade-in">
+                                    <h2 style={{ marginBottom: '2rem', color: '#2c3e50' }}>🔍 한자 발음 조회</h2>
+
+                                    <div style={{ marginBottom: '2rem' }}>
+                                        <div style={{ marginBottom: '1rem' }}>
+                                            <label style={{
+                                                display: 'block',
+                                                marginBottom: '0.5rem',
+                                                color: '#2c3e50',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                한자 단어를 입력하세요:
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={kanjiInput}
+                                                onChange={(e) => setKanjiInput(e.target.value)}
+                                                placeholder="例: 学校, 図書館, 新聞..."
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '1rem',
+                                                    fontSize: '1.2rem',
+                                                    border: '2px solid #ddd',
+                                                    borderRadius: '8px',
+                                                    outline: 'none',
+                                                    transition: 'border-color 0.3s'
+                                                }}
+                                                onFocus={(e) => e.target.style.borderColor = '#3498db'}
+                                                onBlur={(e) => e.target.style.borderColor = '#ddd'}
+                                            />
+                                        </div>
+
+                                        <button
+                                            className="btn btn-primary"
+                                            onClick={lookupKanjiPronunciation}
+                                            disabled={!kanjiInput.trim()}
+                                            style={{
+                                                width: '100%',
+                                                padding: '1rem',
+                                                fontSize: '1.1rem',
+                                                opacity: kanjiInput.trim() ? 1 : 0.6
+                                            }}
+                                        >
+                                            🔍 발음 조회
+                                        </button>
+                                    </div>
+
+                                    {kanjiResult && (
+                                        <div style={{
+                                            background: 'rgba(46, 204, 113, 0.1)',
+                                            border: '2px solid rgba(46, 204, 113, 0.3)',
+                                            borderRadius: '12px',
+                                            padding: '2rem',
+                                            marginBottom: '2rem'
+                                        }}>
+                                            <h3 style={{
+                                                color: '#27ae60',
+                                                marginBottom: '1.5rem',
+                                                fontSize: '1.3rem'
+                                            }}>
+                                                📝 조회 결과
+                                            </h3>
+
+                                            <div style={{ marginBottom: '1.5rem' }}>
+                                                <div style={{
+                                                    fontSize: '2rem',
+                                                    fontWeight: 'bold',
+                                                    marginBottom: '0.5rem',
+                                                    color: '#2c3e50'
+                                                }}>
+                                                    {kanjiResult.kanji}
+                                                </div>
+
+                                                <div style={{
+                                                    fontSize: '1.5rem',
+                                                    color: '#e74c3c',
+                                                    marginBottom: '0.5rem'
+                                                }}>
+                                                    🗾 {kanjiResult.hiragana}
+                                                </div>
+
+                                                <div style={{
+                                                    fontSize: '1.2rem',
+                                                    color: '#3498db',
+                                                    marginBottom: '1rem'
+                                                }}>
+                                                    🔤 {kanjiResult.romaji}
+                                                </div>
+
+                                                {kanjiResult.meaning && (
+                                                    <div style={{
+                                                        fontSize: '1.1rem',
+                                                        color: '#8e44ad',
+                                                        marginBottom: '1rem'
+                                                    }}>
+                                                        🇰🇷 {kanjiResult.meaning}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div style={{
+                                                display: 'flex',
+                                                gap: '1rem',
+                                                flexWrap: 'wrap'
+                                            }}>
+                                                <button
+                                                    className="btn btn-success"
+                                                    onClick={() => playPronunciation(kanjiResult.hiragana)}
+                                                    style={{ fontSize: '0.9rem' }}
+                                                >
+                                                    🔊 발음 듣기
+                                                </button>
+
+                                                <button
+                                                    className="btn btn-info"
+                                                    onClick={() => copyToClipboard(kanjiResult.hiragana)}
+                                                    style={{ fontSize: '0.9rem' }}
+                                                >
+                                                    📋 히라가나 복사
+                                                </button>
+
+                                                <button
+                                                    className="btn btn-warning"
+                                                    onClick={() => addKanjiToWordlist(kanjiResult)}
+                                                    style={{ fontSize: '0.9rem' }}
+                                                >
+                                                    ➕ 단어장에 추가
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {kanjiError && (
+                                        <div style={{
+                                            background: 'rgba(231, 76, 60, 0.1)',
+                                            border: '2px solid rgba(231, 76, 60, 0.3)',
+                                            borderRadius: '12px',
+                                            padding: '1.5rem',
+                                            marginBottom: '2rem'
+                                        }}>
+                                            <div style={{ color: '#e74c3c', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                                                ❌ 조회 실패
+                                            </div>
+                                            <div style={{ color: '#2c3e50' }}>
+                                                {kanjiError}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div style={{
+                                        background: 'rgba(52, 152, 219, 0.1)',
+                                        border: '1px solid rgba(52, 152, 219, 0.3)',
+                                        borderRadius: '12px',
+                                        padding: '1.5rem'
+                                    }}>
+                                        <h4 style={{ color: '#3498db', marginBottom: '1rem' }}>💡 사용 팁</h4>
+                                        <ul style={{ color: '#666', paddingLeft: '1.5rem', margin: 0 }}>
+                                            <li>한자 단어를 입력하면 히라가나 발음을 확인할 수 있습니다</li>
+                                            <li>발음 듣기 버튼으로 정확한 발음을 들어보세요</li>
+                                            <li>유용한 단어는 바로 단어장에 추가할 수 있습니다</li>
+                                            <li>복잡한 한자나 모르는 단어의 읽는 방법을 쉽게 알 수 있습니다</li>
                                         </ul>
                                     </div>
                                 </div>
