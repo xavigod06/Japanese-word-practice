@@ -1062,6 +1062,7 @@
             const [kanjiInput, setKanjiInput] = useState(''); // 입력한 한자
             const [kanjiResult, setKanjiResult] = useState(null); // 조회 결과
             const [kanjiError, setKanjiError] = useState(''); // 오류 메시지
+            const [kanjiLoading, setKanjiLoading] = useState(false); // 로딩 상태
 
             // 기존 hangulToHiragana 사전을 역방향으로 활용하여 hiraganaToKorean 생성
             const createHiraganaToKoreanMap = () => {
@@ -1956,24 +1957,25 @@
 
                 setKanjiError('');
                 setKanjiResult(null);
+                setKanjiLoading(true);
 
                 try {
-                    // 먼저 내장 사전에서 검색
+                    // 1. 먼저 내장 사전에서 검색
                     const hiraganaReverse = Object.keys(kanjiDict).find(hiragana => kanjiDict[hiragana] === kanjiInput.trim());
 
                     if (hiraganaReverse) {
-                        // 내장 사전에서 찾은 경우
                         const result = {
                             kanji: kanjiInput.trim(),
                             hiragana: hiraganaReverse,
                             romaji: convertHiraganaToRomaji(hiraganaReverse),
-                            meaning: ''
+                            meaning: '',
+                            source: '내장 사전'
                         };
                         setKanjiResult(result);
                         return;
                     }
 
-                    // 기존 단어장에서 검색
+                    // 2. 기존 단어장에서 검색
                     const allWords = getAllWords();
                     for (const [hiragana, wordData] of Object.entries(allWords)) {
                         if (wordData.kanji === kanjiInput.trim()) {
@@ -1981,14 +1983,22 @@
                                 kanji: kanjiInput.trim(),
                                 hiragana: hiragana,
                                 romaji: convertHiraganaToRomaji(hiragana),
-                                meaning: wordData.korean || ''
+                                meaning: wordData.korean || '',
+                                source: '단어장'
                             };
                             setKanjiResult(result);
                             return;
                         }
                     }
 
-                    // 간단한 한자 변환 (기본적인 변환만)
+                    // 3. Jisho API로 검색
+                    const jishoResult = await searchWithJishoAPI(kanjiInput.trim());
+                    if (jishoResult) {
+                        setKanjiResult(jishoResult);
+                        return;
+                    }
+
+                    // 4. 간단한 한자 변환 (기본적인 변환만)
                     let hiraganaAttempt = '';
                     for (let char of kanjiInput.trim()) {
                         const found = Object.keys(kanjiDict).find(hiragana => kanjiDict[hiragana] === char);
@@ -2004,16 +2014,90 @@
                             kanji: kanjiInput.trim(),
                             hiragana: hiraganaAttempt,
                             romaji: convertHiraganaToRomaji(hiraganaAttempt),
-                            meaning: ''
+                            meaning: '',
+                            source: '추정'
                         };
                         setKanjiResult(result);
                     } else {
-                        setKanjiError('해당 한자의 발음을 찾을 수 없습니다. 단어장에 추가된 단어나 기본 한자만 지원됩니다.');
+                        setKanjiError('해당 한자의 발음을 찾을 수 없습니다.');
                     }
 
                 } catch (error) {
                     console.error('한자 발음 조회 오류:', error);
                     setKanjiError('발음 조회 중 오류가 발생했습니다.');
+                } finally {
+                    setKanjiLoading(false);
+                }
+            };
+
+            // Jisho API를 통한 한자 검색
+            const searchWithJishoAPI = async (kanji) => {
+                try {
+                    // 여러 프록시 시도
+                    const proxies = [
+                        'https://api.allorigins.win/get?url=',
+                        'https://corsproxy.io/?',
+                        'https://cors-anywhere.herokuapp.com/',
+                        'https://api.codetabs.com/v1/proxy?quest='
+                    ];
+
+                    for (const proxy of proxies) {
+                        try {
+                            const apiUrl = `https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(kanji)}`;
+                            const response = await fetch(`${proxy}${encodeURIComponent(apiUrl)}`, {
+                                method: 'GET',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+
+                            if (!response.ok) continue;
+
+                            let data;
+                            if (proxy.includes('allorigins')) {
+                                const result = await response.json();
+                                data = JSON.parse(result.contents);
+                            } else {
+                                data = await response.json();
+                            }
+
+                            if (data && data.data && data.data.length > 0) {
+                                const entry = data.data[0];
+
+                                // 읽기 정보 추출
+                                let hiragana = '';
+                                let meaning = '';
+
+                                if (entry.japanese && entry.japanese.length > 0) {
+                                    const japaneseEntry = entry.japanese[0];
+                                    hiragana = japaneseEntry.reading || japaneseEntry.word || '';
+                                }
+
+                                if (entry.senses && entry.senses.length > 0) {
+                                    const englishMeanings = entry.senses[0].english_definitions || [];
+                                    meaning = englishMeanings.slice(0, 3).join(', '); // 처음 3개 뜻만
+                                }
+
+                                if (hiragana) {
+                                    return {
+                                        kanji: kanji,
+                                        hiragana: hiragana,
+                                        romaji: convertHiraganaToRomaji(hiragana),
+                                        meaning: meaning,
+                                        source: 'Jisho API'
+                                    };
+                                }
+                            }
+                        } catch (proxyError) {
+                            console.log(`프록시 ${proxy} 실패:`, proxyError);
+                            continue;
+                        }
+                    }
+
+                    return null;
+                } catch (error) {
+                    console.error('Jisho API 검색 오류:', error);
+                    return null;
                 }
             };
 
@@ -4220,6 +4304,11 @@
                                                 type="text"
                                                 value={kanjiInput}
                                                 onChange={(e) => setKanjiInput(e.target.value)}
+                                                onKeyPress={(e) => {
+                                                    if (e.key === 'Enter' && kanjiInput.trim() && !kanjiLoading) {
+                                                        lookupKanjiPronunciation();
+                                                    }
+                                                }}
                                                 placeholder="例: 学校, 図書館, 新聞..."
                                                 style={{
                                                     width: '100%',
@@ -4238,17 +4327,42 @@
                                         <button
                                             className="btn btn-primary"
                                             onClick={lookupKanjiPronunciation}
-                                            disabled={!kanjiInput.trim()}
+                                            disabled={!kanjiInput.trim() || kanjiLoading}
                                             style={{
                                                 width: '100%',
                                                 padding: '1rem',
                                                 fontSize: '1.1rem',
-                                                opacity: kanjiInput.trim() ? 1 : 0.6
+                                                opacity: (kanjiInput.trim() && !kanjiLoading) ? 1 : 0.6
                                             }}
                                         >
-                                            🔍 발음 조회
+                                            {kanjiLoading ? '🔄 조회 중...' : '🔍 발음 조회'}
                                         </button>
                                     </div>
+
+                                    {kanjiLoading && (
+                                        <div style={{
+                                            background: 'rgba(52, 152, 219, 0.1)',
+                                            border: '2px solid rgba(52, 152, 219, 0.3)',
+                                            borderRadius: '12px',
+                                            padding: '2rem',
+                                            marginBottom: '2rem',
+                                            textAlign: 'center'
+                                        }}>
+                                            <div style={{
+                                                fontSize: '1.2rem',
+                                                color: '#3498db',
+                                                marginBottom: '1rem'
+                                            }}>
+                                                🔍 한자 발음을 조회하고 있습니다...
+                                            </div>
+                                            <div style={{
+                                                fontSize: '0.9rem',
+                                                color: '#7f8c8d'
+                                            }}>
+                                                내장 사전 → 단어장 → Jisho API 순으로 검색중
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {kanjiResult && (
                                         <div style={{
@@ -4264,6 +4378,16 @@
                                                 fontSize: '1.3rem'
                                             }}>
                                                 📝 조회 결과
+                                                <span style={{
+                                                    fontSize: '0.8rem',
+                                                    background: 'rgba(52, 152, 219, 0.2)',
+                                                    color: '#3498db',
+                                                    padding: '0.2rem 0.5rem',
+                                                    borderRadius: '4px',
+                                                    marginLeft: '0.5rem'
+                                                }}>
+                                                    📍 {kanjiResult.source}
+                                                </span>
                                             </h3>
 
                                             <div style={{ marginBottom: '1.5rem' }}>
@@ -4346,8 +4470,21 @@
                                             <div style={{ color: '#e74c3c', fontWeight: 'bold', marginBottom: '0.5rem' }}>
                                                 ❌ 조회 실패
                                             </div>
-                                            <div style={{ color: '#2c3e50' }}>
+                                            <div style={{ color: '#2c3e50', marginBottom: '1rem' }}>
                                                 {kanjiError}
+                                            </div>
+                                            <div style={{
+                                                fontSize: '0.9rem',
+                                                color: '#7f8c8d',
+                                                borderTop: '1px solid rgba(231, 76, 60, 0.2)',
+                                                paddingTop: '0.8rem'
+                                            }}>
+                                                💡 다음을 시도해보세요:
+                                                <ul style={{ margin: '0.5rem 0 0 1rem', padding: 0 }}>
+                                                    <li>정확한 한자인지 확인해보세요</li>
+                                                    <li>단어장에 먼저 추가한 후 조회해보세요</li>
+                                                    <li>인터넷 연결을 확인해보세요</li>
+                                                </ul>
                                             </div>
                                         </div>
                                     )}
@@ -4361,9 +4498,11 @@
                                         <h4 style={{ color: '#3498db', marginBottom: '1rem' }}>💡 사용 팁</h4>
                                         <ul style={{ color: '#666', paddingLeft: '1.5rem', margin: 0 }}>
                                             <li>한자 단어를 입력하면 히라가나 발음을 확인할 수 있습니다</li>
+                                            <li>Enter 키를 눌러서도 빠르게 조회할 수 있습니다</li>
                                             <li>발음 듣기 버튼으로 정확한 발음을 들어보세요</li>
                                             <li>유용한 단어는 바로 단어장에 추가할 수 있습니다</li>
-                                            <li>복잡한 한자나 모르는 단어의 읽는 방법을 쉽게 알 수 있습니다</li>
+                                            <li>📍 출처 표시로 어디서 찾은 정보인지 확인하세요</li>
+                                            <li>단어장에 없는 단어도 Jisho API로 자동 검색됩니다</li>
                                         </ul>
                                     </div>
                                 </div>
