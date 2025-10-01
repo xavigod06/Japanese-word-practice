@@ -1054,6 +1054,11 @@
             // 전체 단어장 생성 관련 상태
             const [selectedSetsForCombined, setSelectedSetsForCombined] = useState({}); // 전체 단어장에 포함할 세트들
             const [showSetSelector, setShowSetSelector] = useState(false); // 세트 선택 UI 표시
+
+            // 단어장 합치기 관련 상태
+            const [selectedSetsForMerge, setSelectedSetsForMerge] = useState({}); // 합칠 단어장들 선택
+            const [showMergeSelector, setShowMergeSelector] = useState(false); // 합치기 UI 표시
+            const [newMergedSetName, setNewMergedSetName] = useState(''); // 새 단어장 이름
             
             // 단어 검색 관련 상태
             const [searchQuery, setSearchQuery] = useState(''); // 검색어
@@ -1271,6 +1276,66 @@
             const saveSelectedSets = (selection) => {
                 localStorage.setItem('selectedSetsForCombined', JSON.stringify(selection));
                 console.log('전체 단어장 세트 선택이 저장되었습니다.');
+            };
+
+            // 선택된 단어장들을 합쳐서 새 단어장 생성
+            const mergeSelectedSets = () => {
+                const selectedSetIds = Object.entries(selectedSetsForMerge)
+                    .filter(([_, selected]) => selected)
+                    .map(([setId, _]) => setId);
+
+                if (selectedSetIds.length === 0) {
+                    showAlert('합칠 단어장을 선택해주세요.', 'warning');
+                    return;
+                }
+
+                if (!newMergedSetName.trim()) {
+                    showAlert('새 단어장의 이름을 입력해주세요.', 'warning');
+                    return;
+                }
+
+                // 이름 중복 확인
+                if (setNames[newMergedSetName.trim()] || Object.values(setNames).includes(newMergedSetName.trim())) {
+                    showAlert('이미 존재하는 단어장 이름입니다. 다른 이름을 입력해주세요.', 'warning');
+                    return;
+                }
+
+                // 선택된 단어장들의 단어를 합치기
+                let mergedWords = {};
+                selectedSetIds.forEach(setId => {
+                    if (wordSets[setId]) {
+                        Object.assign(mergedWords, wordSets[setId]);
+                    }
+                });
+
+                if (Object.keys(mergedWords).length === 0) {
+                    showAlert('선택된 단어장들에 단어가 없습니다.', 'warning');
+                    return;
+                }
+
+                // 새 ID 생성
+                const newSetId = 'merged_' + Date.now();
+
+                // 새 단어장 추가
+                const updatedSets = { ...wordSets, [newSetId]: mergedWords };
+                const updatedNames = { ...setNames, [newSetId]: newMergedSetName.trim() };
+
+                setWordSets(updatedSets);
+                setSetNames(updatedNames);
+
+                // 현재 세트를 새로 만든 단어장으로 변경
+                setCurrentSetId(newSetId);
+                setWords(mergedWords);
+
+                // 저장
+                saveAllSets(updatedSets, updatedNames, newSetId);
+
+                // 상태 초기화
+                setSelectedSetsForMerge({});
+                setNewMergedSetName('');
+                setShowMergeSelector(false);
+
+                showAlert(`🎉 '${newMergedSetName.trim()}' 단어장이 생성되었습니다! (${Object.keys(mergedWords).length}개 단어)`, 'success');
             };
 
             // 단어 즐겨찾기 토글
@@ -4096,7 +4161,112 @@
                                             )}
                                         </div>
                                     </div>
-                                    
+
+                                    {/* 단어장 합치기 섹션 */}
+                                    <div style={{ marginBottom: '3rem' }}>
+                                        <h3 style={{
+                                            color: '#34495e',
+                                            marginBottom: '1.5rem',
+                                            borderBottom: '2px solid #3498db',
+                                            paddingBottom: '0.5rem'
+                                        }}>🔗 단어장 합치기</h3>
+
+                                        <div style={{
+                                            background: 'rgba(52, 152, 219, 0.1)',
+                                            padding: '1.5rem',
+                                            borderRadius: '12px',
+                                            border: '1px solid rgba(52, 152, 219, 0.3)',
+                                            marginBottom: '1rem'
+                                        }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                                <h4 style={{ color: '#3498db', margin: 0 }}>📋 합칠 단어장 선택</h4>
+                                                <button
+                                                    className="btn btn-primary"
+                                                    onClick={() => setShowMergeSelector(!showMergeSelector)}
+                                                    style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}
+                                                >
+                                                    {showMergeSelector ? '📝 선택 완료' : '✏️ 단어장 선택'}
+                                                </button>
+                                            </div>
+
+                                            <p style={{ color: '#34495e', marginBottom: '1rem', fontSize: '0.9rem' }}>
+                                                선택한 단어장들을 합쳐서 새로운 단어장을 만들 수 있습니다. 중복되는 단어는 자동으로 제거됩니다.
+                                            </p>
+
+                                            {showMergeSelector && (
+                                                <div style={{ marginTop: '1rem' }}>
+                                                    {Object.entries(setNames).filter(([setId]) => setId !== 'combined').map(([setId, setName]) => (
+                                                        <label key={setId} style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            marginBottom: '0.5rem',
+                                                            cursor: 'pointer',
+                                                            padding: '0.5rem',
+                                                            borderRadius: '8px',
+                                                            backgroundColor: selectedSetsForMerge[setId] ? 'rgba(52, 152, 219, 0.2)' : 'transparent'
+                                                        }}>
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedSetsForMerge[setId] || false}
+                                                                onChange={(e) => {
+                                                                    setSelectedSetsForMerge(prev => ({
+                                                                        ...prev,
+                                                                        [setId]: e.target.checked
+                                                                    }));
+                                                                }}
+                                                                style={{ marginRight: '0.5rem' }}
+                                                            />
+                                                            {setName} ({Object.keys(wordSets[setId] || {}).length}개 단어)
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            <div style={{ marginTop: '1rem' }}>
+                                                <p style={{ color: '#34495e', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+                                                    💡 현재 선택: {Object.values(selectedSetsForMerge).filter(Boolean).length}개 단어장 |
+                                                    합쳐질 단어: {(() => {
+                                                        let totalWords = {};
+                                                        Object.entries(selectedSetsForMerge)
+                                                            .filter(([_, selected]) => selected)
+                                                            .forEach(([setId, _]) => {
+                                                                if (wordSets[setId]) {
+                                                                    Object.assign(totalWords, wordSets[setId]);
+                                                                }
+                                                            });
+                                                        return Object.keys(totalWords).length;
+                                                    })()}개
+                                                </p>
+                                            </div>
+
+                                            {Object.values(selectedSetsForMerge).some(Boolean) && (
+                                                <div style={{ marginTop: '1rem' }}>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="새 단어장 이름을 입력하세요"
+                                                        value={newMergedSetName}
+                                                        onChange={(e) => setNewMergedSetName(e.target.value)}
+                                                        style={{
+                                                            width: '100%',
+                                                            padding: '0.8rem',
+                                                            borderRadius: '8px',
+                                                            border: '2px solid #ddd',
+                                                            fontSize: '1rem',
+                                                            marginBottom: '1rem'
+                                                        }}
+                                                    />
+                                                    <button
+                                                        className="btn btn-success"
+                                                        onClick={mergeSelectedSets}
+                                                        style={{ width: '100%' }}
+                                                    >
+                                                        🎯 선택된 단어장들 합치기
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
                                     {/* 내보내기/가져오기 섹션 */}
                                     <div style={{ marginBottom: '3rem' }}>
                                         <h3 style={{ 
