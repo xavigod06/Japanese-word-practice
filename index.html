@@ -1073,6 +1073,14 @@
             const [kanjiError, setKanjiError] = useState(''); // 오류 메시지
             const [kanjiLoading, setKanjiLoading] = useState(false); // 로딩 상태
 
+            // 학습 모드 관련 상태
+            const [learnStarted, setLearnStarted] = useState(false); // 학습 시작 여부
+            const [currentLearnWord, setCurrentLearnWord] = useState(null); // 현재 학습 중인 단어
+            const [learnWordIndex, setLearnWordIndex] = useState(0); // 현재 단어 인덱스
+            const [learnWords, setLearnWords] = useState([]); // 학습할 단어 목록
+            const [showAnswer, setShowAnswer] = useState(false); // 답 보기 여부
+            const [learnMode, setLearnMode] = useState('all'); // 'all' | 'favorites'
+
             // 기존 hangulToHiragana 사전을 역방향으로 활용하여 hiraganaToKorean 생성
             const createHiraganaToKoreanMap = () => {
                 const reverseMap = {};
@@ -3127,6 +3135,12 @@
                             >
                                 🔍 한자 발음
                             </button>
+                            <button
+                                className={`nav-btn ${currentTab === 'learn' ? 'active' : ''}`}
+                                onClick={() => setCurrentTab('learn')}
+                            >
+                                📖 학습 모드
+                            </button>
                         </nav>
                     </header>
 
@@ -4860,6 +4874,184 @@
                                             <li>단어장에 없는 단어도 Jisho API로 자동 검색됩니다</li>
                                         </ul>
                                     </div>
+                                </div>
+                            )}
+
+                            {currentTab === 'learn' && (
+                                <div className="card fade-in">
+                                    <h2 style={{ marginBottom: '2rem', color: '#2c3e50' }}>📖 단어 학습 모드</h2>
+
+                                    {!learnStarted ? (
+                                        <div>
+                                            <div style={{
+                                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                                padding: '2rem',
+                                                borderRadius: '16px',
+                                                color: 'white',
+                                                marginBottom: '2rem',
+                                                textAlign: 'center'
+                                            }}>
+                                                <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>💡 학습 모드 안내</h3>
+                                                <p style={{ fontSize: '1rem', lineHeight: '1.6', opacity: 0.95 }}>
+                                                    단어를 한 장씩 넘겨가며 학습할 수 있습니다.<br/>
+                                                    히라가나와 한국어 뜻을 확인하고, 암기해보세요!
+                                                </p>
+                                            </div>
+
+                                            <div style={{ marginBottom: '2rem' }}>
+                                                <h3 style={{ marginBottom: '1rem', color: '#34495e' }}>학습 범위 선택</h3>
+                                                <div className="btn-group" style={{ marginBottom: '1.5rem' }}>
+                                                    <button
+                                                        className={`btn ${learnMode === 'all' ? 'btn-primary' : 'btn-secondary'}`}
+                                                        onClick={() => setLearnMode('all')}
+                                                    >
+                                                        📚 전체 단어 ({Object.keys(words).length}개)
+                                                    </button>
+                                                    <button
+                                                        className={`btn ${learnMode === 'favorites' ? 'btn-primary' : 'btn-secondary'}`}
+                                                        onClick={() => setLearnMode('favorites')}
+                                                    >
+                                                        ⭐ 표시한 단어만 ({getCurrentSetFavorites().length}개)
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                className="btn btn-success btn-lg"
+                                                onClick={() => {
+                                                    const wordsToLearn = learnMode === 'all'
+                                                        ? Object.entries(words)
+                                                        : Object.entries(words).filter(([key]) => getCurrentSetFavorites().includes(key));
+
+                                                    if (wordsToLearn.length === 0) {
+                                                        showNotif(learnMode === 'favorites' ? '표시한 단어가 없습니다!' : '학습할 단어가 없습니다!', 'warning');
+                                                        return;
+                                                    }
+
+                                                    setLearnWords(wordsToLearn);
+                                                    setLearnWordIndex(0);
+                                                    setCurrentLearnWord(wordsToLearn[0]);
+                                                    setShowAnswer(false);
+                                                    setLearnStarted(true);
+                                                }}
+                                            >
+                                                🚀 학습 시작하기
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <div style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                marginBottom: '2rem',
+                                                padding: '1rem',
+                                                background: 'rgba(102, 126, 234, 0.1)',
+                                                borderRadius: '12px'
+                                            }}>
+                                                <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#667eea' }}>
+                                                    진행도: {learnWordIndex + 1} / {learnWords.length}
+                                                </div>
+                                                <button
+                                                    className="btn btn-secondary"
+                                                    onClick={() => {
+                                                        setLearnStarted(false);
+                                                        setShowAnswer(false);
+                                                    }}
+                                                >
+                                                    ❌ 학습 종료
+                                                </button>
+                                            </div>
+
+                                            {currentLearnWord && (
+                                                <div style={{
+                                                    background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                                                    padding: '3rem',
+                                                    borderRadius: '20px',
+                                                    textAlign: 'center',
+                                                    marginBottom: '2rem',
+                                                    minHeight: '300px',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    justifyContent: 'center'
+                                                }}>
+                                                    <div style={{ fontSize: '3rem', marginBottom: '2rem', fontWeight: 'bold' }}>
+                                                        {currentLearnWord[1].kanji || currentLearnWord[0]}
+                                                    </div>
+
+                                                    {showAnswer && (
+                                                        <div className="fade-in">
+                                                            <div style={{ fontSize: '2rem', marginBottom: '1rem', color: '#667eea' }}>
+                                                                {currentLearnWord[0]}
+                                                            </div>
+                                                            <div style={{ fontSize: '1.8rem', color: '#2c3e50' }}>
+                                                                {currentLearnWord[1].korean}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1rem' }}>
+                                                {!showAnswer ? (
+                                                    <button
+                                                        className="btn btn-primary btn-lg"
+                                                        onClick={() => setShowAnswer(true)}
+                                                    >
+                                                        💡 답 보기
+                                                    </button>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            className="btn btn-secondary"
+                                                            onClick={() => {
+                                                                if (learnWordIndex > 0) {
+                                                                    setLearnWordIndex(learnWordIndex - 1);
+                                                                    setCurrentLearnWord(learnWords[learnWordIndex - 1]);
+                                                                    setShowAnswer(false);
+                                                                }
+                                                            }}
+                                                            disabled={learnWordIndex === 0}
+                                                        >
+                                                            ⬅️ 이전
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-primary"
+                                                            onClick={() => {
+                                                                if (learnWordIndex < learnWords.length - 1) {
+                                                                    setLearnWordIndex(learnWordIndex + 1);
+                                                                    setCurrentLearnWord(learnWords[learnWordIndex + 1]);
+                                                                    setShowAnswer(false);
+                                                                } else {
+                                                                    showNotif('모든 단어를 학습했습니다! 🎉', 'success');
+                                                                    setLearnStarted(false);
+                                                                    setShowAnswer(false);
+                                                                }
+                                                            }}
+                                                        >
+                                                            {learnWordIndex < learnWords.length - 1 ? '다음 ➡️' : '완료 ✅'}
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
+
+                                            <div style={{
+                                                marginTop: '2rem',
+                                                padding: '1rem',
+                                                background: 'rgba(46, 204, 113, 0.1)',
+                                                borderRadius: '12px',
+                                                border: '1px solid rgba(46, 204, 113, 0.3)'
+                                            }}>
+                                                <h4 style={{ color: '#27ae60', marginBottom: '0.5rem' }}>💡 학습 팁</h4>
+                                                <ul style={{ color: '#666', paddingLeft: '1.5rem', margin: 0 }}>
+                                                    <li>한자를 먼저 보고 발음과 뜻을 떠올려보세요</li>
+                                                    <li>"답 보기"를 눌러 정답을 확인하세요</li>
+                                                    <li>다음 버튼으로 넘어가며 학습하세요</li>
+                                                    <li>반복 학습으로 암기 효과를 높일 수 있습니다</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
