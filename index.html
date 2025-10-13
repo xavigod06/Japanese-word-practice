@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🗾 일본어 단어 공부</title>
     
     <!-- PWA 메타 태그들 -->
@@ -26,6 +26,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -33,6 +34,9 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            touch-action: manipulation;
         }
 
         .app {
@@ -77,6 +81,10 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 500;
+            min-height: 44px;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
         }
 
         .nav-btn:hover {
@@ -156,6 +164,9 @@
             font-size: 1.1rem;
             transition: all 0.3s ease;
             background: white;
+            min-height: 44px;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         .input-field:focus {
@@ -173,6 +184,11 @@
             cursor: pointer;
             transition: all 0.3s ease;
             margin: 0.5rem;
+            min-height: 44px;
+            min-width: 44px;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
         }
 
         .btn-primary {
@@ -690,49 +706,52 @@
                 padding: 0.5rem;
                 margin: 0;
             }
-            
+
             .card {
                 padding: 1rem;
                 margin-bottom: 1rem;
                 border-radius: 12px;
             }
-            
+
             .quiz-word .kanji {
                 font-size: 2.5rem !important;
             }
-            
+
             .quiz-word .hiragana {
                 font-size: 1.8rem !important;
             }
-            
+
             .btn-group {
                 flex-direction: column;
                 gap: 0.5rem;
             }
-            
+
             .btn {
                 width: 100%;
                 min-width: auto !important;
                 padding: 1rem;
                 font-size: 1rem;
+                min-height: 48px;
             }
-            
+
             .input-field {
-                font-size: 1rem;
+                font-size: 16px;
                 padding: 1rem;
+                min-height: 48px;
             }
-            
+
             .nav-btn {
                 padding: 0.8rem 1rem;
                 font-size: 0.9rem;
+                min-height: 48px;
             }
-            
+
             /* 2단계 퀴즈 선택 버튼들 */
             div[style*="display: flex"][style*="gap: 1rem"] {
                 flex-direction: column !important;
                 align-items: stretch !important;
             }
-            
+
             /* 모바일에서 변환 안내 텍스트 크기 조정 */
             div[style*="background: rgba(46, 204, 113, 0.1)"] {
                 font-size: 0.8rem !important;
