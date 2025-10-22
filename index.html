@@ -1195,16 +1195,27 @@
                         Object.entries(parsedSets).forEach(([setId, setWords]) => {
                             updatedSets[setId] = {};
                             Object.entries(setWords).forEach(([hiragana, wordData]) => {
-                                // 구 데이터 구조 확인 (kanji 필드가 없거나 favorite 필드가 없는 경우)
-                                if (!wordData.kanji || wordData.favorite === undefined) {
+                                // wordData가 객체인지 확인
+                                if (typeof wordData === 'object' && wordData !== null) {
+                                    // 구 데이터 구조 확인 (kanji 필드가 없거나 favorite 필드가 없는 경우)
+                                    if (!wordData.kanji || wordData.favorite === undefined) {
+                                        needsUpdate = true;
+                                        updatedSets[setId][hiragana] = {
+                                            kanji: wordData.kanji || hiragana,
+                                            korean: wordData.korean || '',
+                                            favorite: wordData.favorite || false
+                                        };
+                                    } else {
+                                        updatedSets[setId][hiragana] = wordData;
+                                    }
+                                } else {
+                                    // 구 데이터 형식 (문자열)
                                     needsUpdate = true;
                                     updatedSets[setId][hiragana] = {
-                                        kanji: wordData.kanji || hiragana,
-                                        korean: wordData.korean || wordData,
-                                        favorite: wordData.favorite || false
+                                        kanji: hiragana,
+                                        korean: wordData || '',
+                                        favorite: false
                                     };
-                                } else {
-                                    updatedSets[setId][hiragana] = wordData;
                                 }
                             });
                         });
@@ -2018,24 +2029,26 @@
 
             const exportToCSV = () => {
                 let csvContent = 'Set Name,Kanji,Hiragana,Korean,Favorite\n';
-                
+
                 Object.entries(wordSets).forEach(([setId, words]) => {
                     const setName = setNames[setId] || setId;
-                    Object.entries(words).forEach(([kanji, data]) => {
+                    Object.entries(words).forEach(([hiragana, data]) => {
                         const row = [
                             `"${setName}"`,
-                            `"${kanji}"`,
-                            `"${data.hiragana || ''}"`,
+                            `"${data.kanji || hiragana}"`,
+                            `"${hiragana}"`,
                             `"${data.korean || ''}"`,
                             data.favorite ? 'true' : 'false'
                         ].join(',');
                         csvContent += row + '\n';
                     });
                 });
-                
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+                // UTF-8 BOM 추가 (엑셀에서 한글이 깨지지 않도록)
+                const BOM = '\uFEFF';
+                const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
-                
+
                 const link = document.createElement('a');
                 link.href = url;
                 link.download = `japanese_vocabulary_${new Date().toISOString().split('T')[0]}.csv`;
@@ -2043,7 +2056,7 @@
                 link.click();
                 document.body.removeChild(link);
                 URL.revokeObjectURL(url);
-                
+
                 showAlert('📊 단어장이 CSV 파일로 내보내졌습니다!', 'success');
             };
 
