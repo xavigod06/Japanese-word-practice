@@ -661,6 +661,64 @@
             transform: scale(1.1);
         }
 
+        /* 한자 가림 효과 */
+        .kanji-container {
+            position: relative;
+            display: inline-block;
+            margin: 1rem 0;
+        }
+
+        .kanji-hidden {
+            filter: blur(25px);
+            color: transparent;
+            text-shadow: none;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .kanji-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            box-shadow: 0 8px 25px rgba(155, 89, 182, 0.4);
+            animation: pulse 2s infinite;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        .kanji-toggle-btn {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: rgba(155, 89, 182, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3);
+        }
+
+        .kanji-toggle-btn:hover {
+            background: rgba(142, 68, 173, 0.9);
+            transform: scale(1.1);
+        }
+
         .quiz-word {
             position: relative;
         }
@@ -1037,7 +1095,8 @@
             const [usedWords, setUsedWords] = useState(new Set()); // 이미 출제된 문제들
             const [quizCompleted, setQuizCompleted] = useState(false); // 퀴즈 완료 여부
             const [hideHiragana, setHideHiragana] = useState(false); // 히라가나 가림 여부
-            
+            const [hideKanji, setHideKanji] = useState(false); // 한자 가림 여부
+
             // 단어장 세트 관리
             const [wordSets, setWordSets] = useState({}); // 모든 단어장 세트들
             const [currentSetId, setCurrentSetId] = useState('default'); // 현재 선택된 세트
@@ -2564,6 +2623,7 @@
                 setUsedWords(new Set()); // 출제된 문제 초기화
                 setQuizCompleted(false);
                 setHideHiragana(true); // 히라가나 가림 상태 초기화 (기본으로 가림)
+                setHideKanji(false); // 한자 가림 상태 초기화
                 setConvertedQuizAnswer(''); // 변환된 답안 초기화
                 setIsLoadingNextQuestion(false); // 로딩 상태 초기화
                 setWrongAnswers([]); // 틀린 답안 목록 초기화
@@ -3456,7 +3516,16 @@
                                                         // 기존 퀴즈들: 일본어를 문제로 표시
                                                         <>
                                                             {words[currentWord] && words[currentWord].kanji && (
-                                                                <div className="kanji">{words[currentWord].kanji}</div>
+                                                                <div className="kanji-container">
+                                                                    <div className={`kanji ${hideKanji ? 'kanji-hidden' : ''}`}>
+                                                                        {words[currentWord].kanji}
+                                                                    </div>
+                                                                    {hideKanji && (
+                                                                        <div className="kanji-overlay">
+                                                                            👁️한자 보기
+                                                                        </div>
+                                                                    )}
+                                                                </div>
                                                             )}
                                                             <div className="hiragana-container">
                                                                 <div className={`hiragana ${hideHiragana ? 'hiragana-hidden' : ''}`}>
@@ -3470,9 +3539,20 @@
                                                             </div>
                                                         </>
                                                     )}
+                                                    {/* 한자 가림 버튼 (japanese 퀴즈에서는 제외) */}
+                                                    {quizType !== 'japanese' && words[currentWord] && words[currentWord].kanji && words[currentWord].kanji !== currentWord && (
+                                                        <button
+                                                            className="kanji-toggle-btn"
+                                                            onClick={() => setHideKanji(!hideKanji)}
+                                                            title={hideKanji ? "한자 보기" : "한자 가리기"}
+                                                            style={{ top: '90px' }}
+                                                        >
+                                                            {hideKanji ? '👁️' : '🙈'}
+                                                        </button>
+                                                    )}
                                                     {/* 한자가 있을 때만 히라가나 가림 버튼 표시 (japanese 퀴즈에서는 제외) */}
                                                     {quizType !== 'japanese' && words[currentWord] && words[currentWord].kanji && words[currentWord].kanji !== currentWord && (
-                                                        <button 
+                                                        <button
                                                             className="hiragana-toggle-btn"
                                                             onClick={() => setHideHiragana(!hideHiragana)}
                                                             title={hideHiragana ? "히라가나 보기" : "히라가나 가리기"}
