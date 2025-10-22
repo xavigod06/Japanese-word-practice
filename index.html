@@ -2623,7 +2623,7 @@
                 setUsedWords(new Set()); // 출제된 문제 초기화
                 setQuizCompleted(false);
                 setHideHiragana(true); // 히라가나 가림 상태 초기화 (기본으로 가림)
-                setHideKanji(false); // 한자 가림 상태 초기화
+                setHideKanji(true); // 한자 가림 상태 초기화 (기본으로 가림)
                 setConvertedQuizAnswer(''); // 변환된 답안 초기화
                 setIsLoadingNextQuestion(false); // 로딩 상태 초기화
                 setWrongAnswers([]); // 틀린 답안 목록 초기화
@@ -3495,37 +3495,63 @@
                                                 <div className="quiz-word">
                                                     {quizType === 'japanese' ? (
                                                         // 일본어 퀴즈: 한국어 뜻을 문제로 표시
-                                                        <div className="korean-question" style={{ 
-                                                            fontSize: '2rem', 
-                                                            fontWeight: 'bold', 
-                                                            color: '#2c3e50',
-                                                            textAlign: 'center',
-                                                            padding: '2rem'
-                                                        }}>
-                                                            {words[currentWord] && words[currentWord].korean}
-                                                            <div style={{ 
-                                                                fontSize: '1rem', 
-                                                                color: '#7f8c8d', 
-                                                                marginTop: '1rem',
-                                                                fontWeight: 'normal'
+                                                        <>
+                                                            <div className="korean-question" style={{
+                                                                fontSize: '2rem',
+                                                                fontWeight: 'bold',
+                                                                color: '#2c3e50',
+                                                                textAlign: 'center',
+                                                                padding: '2rem'
                                                             }}>
-                                                                👇 이 뜻에 해당하는 일본어를 입력하세요
+                                                                {words[currentWord] && words[currentWord].korean}
+                                                                <div style={{
+                                                                    fontSize: '1rem',
+                                                                    color: '#7f8c8d',
+                                                                    marginTop: '1rem',
+                                                                    fontWeight: 'normal'
+                                                                }}>
+                                                                    👇 이 뜻에 해당하는 일본어를 입력하세요
+                                                                </div>
                                                             </div>
-                                                        </div>
+                                                            {/* 정답 확인용 숨겨진 한자/히라가나 */}
+                                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                                                                {words[currentWord] && words[currentWord].kanji && (
+                                                                    <div className="kanji-container">
+                                                                        <div
+                                                                            className={`kanji ${hideKanji ? 'kanji-hidden' : ''}`}
+                                                                            onClick={() => setHideKanji(!hideKanji)}
+                                                                            style={{ cursor: 'pointer' }}
+                                                                        >
+                                                                            {words[currentWord].kanji}
+                                                                        </div>
+                                                                        {hideKanji && (
+                                                                            <div
+                                                                                className="kanji-overlay"
+                                                                                onClick={() => setHideKanji(false)}
+                                                                                style={{ cursor: 'pointer' }}
+                                                                            >
+                                                                                👁️한자 보기
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                                <div className="hiragana-container">
+                                                                    <div className={`hiragana ${hideHiragana ? 'hiragana-hidden' : ''}`}>
+                                                                        {currentWord}
+                                                                    </div>
+                                                                    {hideHiragana && (
+                                                                        <div className="hiragana-overlay">
+                                                                            👁️히라가나 보기
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </>
                                                     ) : (
                                                         // 기존 퀴즈들: 일본어를 문제로 표시
                                                         <>
                                                             {words[currentWord] && words[currentWord].kanji && (
-                                                                <div className="kanji-container">
-                                                                    <div className={`kanji ${hideKanji ? 'kanji-hidden' : ''}`}>
-                                                                        {words[currentWord].kanji}
-                                                                    </div>
-                                                                    {hideKanji && (
-                                                                        <div className="kanji-overlay">
-                                                                            👁️한자 보기
-                                                                        </div>
-                                                                    )}
-                                                                </div>
+                                                                <div className="kanji">{words[currentWord].kanji}</div>
                                                             )}
                                                             <div className="hiragana-container">
                                                                 <div className={`hiragana ${hideHiragana ? 'hiragana-hidden' : ''}`}>
@@ -3539,17 +3565,6 @@
                                                             </div>
                                                         </>
                                                     )}
-                                                    {/* 한자 가림 버튼 (japanese 퀴즈에서는 제외) */}
-                                                    {quizType !== 'japanese' && words[currentWord] && words[currentWord].kanji && words[currentWord].kanji !== currentWord && (
-                                                        <button
-                                                            className="kanji-toggle-btn"
-                                                            onClick={() => setHideKanji(!hideKanji)}
-                                                            title={hideKanji ? "한자 보기" : "한자 가리기"}
-                                                            style={{ top: '90px' }}
-                                                        >
-                                                            {hideKanji ? '👁️' : '🙈'}
-                                                        </button>
-                                                    )}
                                                     {/* 한자가 있을 때만 히라가나 가림 버튼 표시 (japanese 퀴즈에서는 제외) */}
                                                     {quizType !== 'japanese' && words[currentWord] && words[currentWord].kanji && words[currentWord].kanji !== currentWord && (
                                                         <button
@@ -3560,7 +3575,7 @@
                                                             {hideHiragana ? '👁️' : '🙈'}
                                                         </button>
                                                     )}
-                                                    
+
                                                     {/* 즐겨찾기/표시 버튼 */}
                                                     <button 
                                                         className={`quiz-favorite-btn ${getCurrentSetFavorites()[currentWord] ? 'favorited' : ''}`}
