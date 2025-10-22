@@ -1182,22 +1182,50 @@
             const loadAllWordSets = () => {
                 const savedSets = localStorage.getItem('japaneseWordSets');
                 const savedSetNames = localStorage.getItem('japaneseSetNames');
-                
+
                 if (savedSets && savedSetNames) {
                     try {
                         const parsedSets = JSON.parse(savedSets);
                         const parsedNames = JSON.parse(savedSetNames);
-                        setWordSets(parsedSets);
+
+                        // 데이터 구조 업데이트: kanji 필드가 없는 경우 추가
+                        let needsUpdate = false;
+                        const updatedSets = {};
+
+                        Object.entries(parsedSets).forEach(([setId, setWords]) => {
+                            updatedSets[setId] = {};
+                            Object.entries(setWords).forEach(([hiragana, wordData]) => {
+                                // 구 데이터 구조 확인 (kanji 필드가 없거나 favorite 필드가 없는 경우)
+                                if (!wordData.kanji || wordData.favorite === undefined) {
+                                    needsUpdate = true;
+                                    updatedSets[setId][hiragana] = {
+                                        kanji: wordData.kanji || hiragana,
+                                        korean: wordData.korean || wordData,
+                                        favorite: wordData.favorite || false
+                                    };
+                                } else {
+                                    updatedSets[setId][hiragana] = wordData;
+                                }
+                            });
+                        });
+
+                        // 업데이트가 필요한 경우 저장
+                        if (needsUpdate) {
+                            console.log('데이터 구조를 업데이트합니다...');
+                            localStorage.setItem('japaneseWordSets', JSON.stringify(updatedSets));
+                        }
+
+                        setWordSets(updatedSets);
                         setSetNames(parsedNames);
-                        
+
                         // 현재 세트 설정
                         const savedCurrentSet = localStorage.getItem('currentWordSet') || 'default';
-                        if (parsedSets[savedCurrentSet]) {
+                        if (updatedSets[savedCurrentSet]) {
                             setCurrentSetId(savedCurrentSet);
-                            setWords(parsedSets[savedCurrentSet]);
+                            setWords(updatedSets[savedCurrentSet]);
                         }
-                        console.log('저장된 단어장 세트들을 불러왔습니다:', Object.keys(parsedSets).length + '개 세트');
-                        
+                        console.log('저장된 단어장 세트들을 불러왔습니다:', Object.keys(updatedSets).length + '개 세트');
+
                         // 전체 단어장 생성
                         setTimeout(() => updateCombinedWordSet(), 100);
                     } catch (error) {
