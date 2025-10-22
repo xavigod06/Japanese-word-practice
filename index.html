@@ -3513,39 +3513,27 @@
                                                                     👇 이 뜻에 해당하는 일본어를 입력하세요
                                                                 </div>
                                                             </div>
-                                                            {/* 정답 확인용 숨겨진 한자/히라가나 */}
-                                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                                                                {words[currentWord] && words[currentWord].kanji && (
-                                                                    <div className="kanji-container">
+                                                            {/* 정답 확인용 숨겨진 한자만 표시 */}
+                                                            {words[currentWord] && words[currentWord].kanji && (
+                                                                <div className="kanji-container" style={{ marginTop: '1rem' }}>
+                                                                    <div
+                                                                        className={`kanji ${hideKanji ? 'kanji-hidden' : ''}`}
+                                                                        onClick={() => setHideKanji(!hideKanji)}
+                                                                        style={{ cursor: 'pointer' }}
+                                                                    >
+                                                                        {words[currentWord].kanji}
+                                                                    </div>
+                                                                    {hideKanji && (
                                                                         <div
-                                                                            className={`kanji ${hideKanji ? 'kanji-hidden' : ''}`}
-                                                                            onClick={() => setHideKanji(!hideKanji)}
+                                                                            className="kanji-overlay"
+                                                                            onClick={() => setHideKanji(false)}
                                                                             style={{ cursor: 'pointer' }}
                                                                         >
-                                                                            {words[currentWord].kanji}
-                                                                        </div>
-                                                                        {hideKanji && (
-                                                                            <div
-                                                                                className="kanji-overlay"
-                                                                                onClick={() => setHideKanji(false)}
-                                                                                style={{ cursor: 'pointer' }}
-                                                                            >
-                                                                                👁️한자 보기
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                )}
-                                                                <div className="hiragana-container">
-                                                                    <div className={`hiragana ${hideHiragana ? 'hiragana-hidden' : ''}`}>
-                                                                        {currentWord}
-                                                                    </div>
-                                                                    {hideHiragana && (
-                                                                        <div className="hiragana-overlay">
-                                                                            👁️히라가나 보기
+                                                                            👁️한자 보기
                                                                         </div>
                                                                     )}
                                                                 </div>
-                                                            </div>
+                                                            )}
                                                         </>
                                                     ) : (
                                                         // 기존 퀴즈들: 일본어를 문제로 표시
